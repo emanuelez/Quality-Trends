@@ -1,4 +1,4 @@
-package org.jenkins.plugins;
+package org.jenkins.plugins.model;
 
 /**
  * @author Emanuele Zattin

@@ -9,6 +9,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
+import org.jenkins.plugins.model.Parser;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
@@ -18,12 +19,15 @@ import java.io.IOException;
  */
 public class QualityTrends extends Recorder {
 
+    private Iterable<Parser> parsers;
+
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
     }
 
     @DataBoundConstructor
     public QualityTrends(Iterable<Parser> parsers) {
+        this.parsers = parsers;
     }
 
     @Override
@@ -31,9 +35,16 @@ public class QualityTrends extends Recorder {
             throws InterruptedException, IOException {
 
         // For every parser scan the console log
+        for (Parser parser : parsers) {
+
+        }
 
 
         return super.perform(build, launcher, listener);
+    }
+
+    public Iterable<Parser> getParsers() {
+        return parsers;
     }
 
     @Extension
