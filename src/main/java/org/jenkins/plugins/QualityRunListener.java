@@ -24,7 +24,6 @@ import java.util.regex.Pattern;
 @Extension
 public class QualityRunListener extends RunListener {
 
-    private BufferedReader logReader;
     private Set<ParserResult> parserResults = Sets.newHashSet();
 
     @Override
@@ -57,13 +56,14 @@ public class QualityRunListener extends RunListener {
 
 
         try {
-            logReader = new BufferedReader(run.getLogReader());
+            BufferedReader logReader = new BufferedReader(run.getLogReader());
             String line = logReader.readLine();
             while (true) {
                 while (line == null) {
                     Thread.sleep(1000);
                 }
                 if (!run.isBuilding()) {
+                    logReader.close();
                     break;
                 }
                 line = logReader.readLine();
@@ -83,15 +83,6 @@ public class QualityRunListener extends RunListener {
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onCompleted(Run run, TaskListener listener) {
-        try {
-            logReader.close();
-        } catch (IOException e) {
             e.printStackTrace();
         }
     }
