@@ -1,4 +1,4 @@
-package org.jenkins.plugins.model;
+package org.jenkins.plugins.qualitytrends.model;
 
 import java.util.regex.Matcher;
 

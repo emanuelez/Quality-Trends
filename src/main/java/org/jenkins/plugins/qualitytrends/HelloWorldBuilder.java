@@ -1,4 +1,4 @@
-package org.jenkins.plugins;
+package org.jenkins.plugins.qualitytrends;
 import hudson.Launcher;
 import hudson.Extension;
 import hudson.util.FormValidation;

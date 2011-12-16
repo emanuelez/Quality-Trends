@@ -1,4 +1,4 @@
-package org.jenkins.plugins;
+package org.jenkins.plugins.qualitytrends;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
@@ -6,13 +6,13 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import hudson.Extension;
 import hudson.matrix.MatrixProject;
+import hudson.model.AbstractBuild;
 import hudson.model.Project;
-import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
 import hudson.tasks.Publisher;
-import org.jenkins.plugins.model.Parser;
-import org.jenkins.plugins.model.ParserResult;
+import org.jenkins.plugins.qualitytrends.model.Parser;
+import org.jenkins.plugins.qualitytrends.model.ParserResult;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,19 +22,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Extension
-public class QualityRunListener extends RunListener {
+public class QualityRunListener extends RunListener<AbstractBuild> {
 
     private Set<ParserResult> parserResults = Sets.newHashSet();
 
     @Override
-    public void onStarted(Run run, TaskListener listener) {
+    public void onStarted(AbstractBuild abstractBuild, TaskListener listener) {
 
         Iterable<? extends Publisher> QTPublishers;
-        if (run.getParent() instanceof Project) {
-            Project p = (Project) run.getParent();
+        if (abstractBuild.getParent() instanceof Project) {
+            Project p = (Project) abstractBuild.getParent();
             QTPublishers = Iterables.filter(p.getPublishers().values(), Predicates.instanceOf(QualityTrends.class));
-        } else if (run.getParent() instanceof MatrixProject) {
-            MatrixProject p = (MatrixProject) run.getParent();
+        } else if (abstractBuild.getParent() instanceof MatrixProject) {
+            MatrixProject p = (MatrixProject) abstractBuild.getParent();
             QTPublishers = Iterables.filter(p.getPublishers().values(), Predicates.instanceOf(QualityTrends.class));
         } else {
             return;
@@ -56,13 +56,13 @@ public class QualityRunListener extends RunListener {
 
 
         try {
-            BufferedReader logReader = new BufferedReader(run.getLogReader());
+            BufferedReader logReader = new BufferedReader(abstractBuild.getLogReader());
             String line = logReader.readLine();
             while (true) {
                 while (line == null) {
                     Thread.sleep(1000);
                 }
-                if (!run.isBuilding()) {
+                if (!abstractBuild.isBuilding()) {
                     logReader.close();
                     break;
                 }
@@ -85,5 +85,9 @@ public class QualityRunListener extends RunListener {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public Set<ParserResult> getParserResults() {
+        return parserResults;
     }
 }

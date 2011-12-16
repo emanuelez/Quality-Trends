@@ -1,4 +1,4 @@
-package org.jenkins.plugins;
+package org.jenkins.plugins.qualitytrends;
 
 import hudson.Extension;
 import hudson.Launcher;
@@ -9,7 +9,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
-import org.jenkins.plugins.model.Parser;
+import org.jenkins.plugins.qualitytrends.model.Parser;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;

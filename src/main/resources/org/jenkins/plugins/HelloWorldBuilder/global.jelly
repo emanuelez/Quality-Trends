@@ -13,7 +13,7 @@
   -->
   <f:section title="Hello World Builder">
     <!--
-      Optional @help points to the help document HTML. /plugin/quality-trends
+      Optional @help points to the help document HTML. /plugin/qualitytrends
       is mapped to our webapp/ directory, so this is a convenient way to serve
       static resources.
     -->
