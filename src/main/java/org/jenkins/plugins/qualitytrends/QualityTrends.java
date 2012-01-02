@@ -31,15 +31,15 @@ public class QualityTrends extends Recorder {
     }
 
     @Override
+    public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
+        build.addAction(new ParserTaskAction(build, parsers));
+        return true;
+    }
+
+    @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
-
-        // For every parser scan the console log
-        for (Parser parser : parsers) {
-
-        }
-
-
+        System.out.println("Done!");
         return super.perform(build, launcher, listener);
     }
 
