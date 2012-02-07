@@ -1,0 +1,1 @@
+INSERT INTO warnings SET warning_sha1 = ?;

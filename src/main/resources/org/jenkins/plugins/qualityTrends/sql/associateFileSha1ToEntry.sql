@@ -1,0 +1,1 @@
+UPDATE entries SET file_sha1 = ? WHERE entry_id = ?;

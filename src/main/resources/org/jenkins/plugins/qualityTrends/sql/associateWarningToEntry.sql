@@ -1,0 +1,1 @@
+UPDATE entries SET warning_id = ? WHERE entry_id = ?;

@@ -7,8 +7,10 @@ import java.util.regex.Matcher;
  */
 public interface Parser {
     
-    abstract public String getRegex();
+    public String getName();
     
-    abstract public ParserResult getParserResult(Matcher matcher);
+    public String getRegex();
+    
+    public ParserResult getParserResult(Matcher matcher);
     
 }
