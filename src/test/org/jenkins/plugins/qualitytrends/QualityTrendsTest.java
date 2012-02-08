@@ -58,6 +58,8 @@ public class QualityTrendsTest extends HudsonTestCase {
             fail("There was an execution exception");
         }
         System.out.println(build.getDisplayName()+" completed");
+
+        System.out.println("=== Log to follow from here ===");
         try {
             final List<String> logLines = Files.readLines(build.getLogFile(), Charset.defaultCharset());
             for (String logLine : logLines) {
@@ -75,11 +77,13 @@ public class QualityTrendsTest extends HudsonTestCase {
                 .thenReturn("^.*$");
         when(parser.getParserResult(any(Matcher.class)))
                 .thenReturn(new ParserResult(
-                        "Mock Parser",
+                        "MockParser",
                         Severity.INFO,
                         ".",
                         0,
                         "Mock message" ));
+        when(parser.getName())
+                .thenReturn("MockParser");
         return parser;
     }
     

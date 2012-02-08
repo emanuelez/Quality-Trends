@@ -14,4 +14,6 @@ public interface StorageManager {
     abstract public void remove(ParserResult parserResult) throws QualityTrendsException;
 
     int getEntryNumberForBuild(AbstractBuild<?, ?> build) throws QualityTrendsException;
+    
+    int getEntryNumberForBuildAndParser(AbstractBuild<?, ?> build, Parser parser) throws QualityTrendsException;
 }

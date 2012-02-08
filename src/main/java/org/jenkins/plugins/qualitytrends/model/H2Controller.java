@@ -23,6 +23,7 @@ public class H2Controller implements DbController {
     private PreparedStatement tearDown;
     private PreparedStatement getBuildFromBuildNumber;
     private PreparedStatement getEntryNumberFromBuildNumber;
+    private PreparedStatement getEntryNumberFromBuildNumberAndParser;
 
     @Inject
     public H2Controller(@Assisted String path) {
@@ -89,6 +90,10 @@ public class H2Controller implements DbController {
         url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getEntryNumberFromBuildNumber.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         getEntryNumberFromBuildNumber = connection.prepareStatement(sql);
+
+        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getEntryNumberFromBuildNumberAndParser.sql");
+        sql = Resources.toString(url, Charsets.ISO_8859_1);
+        getEntryNumberFromBuildNumberAndParser = connection.prepareStatement(sql);
     }
 
     private boolean isSchemaOK() throws SQLException {
@@ -189,10 +194,22 @@ public class H2Controller implements DbController {
         }
     }
 
-    public int getEntryNumberForBuildNumber(int build_number) throws SQLException {
+    public int getEntryNumberFromBuildNumber(int build_number) throws SQLException {
         getEntryNumberFromBuildNumber.setInt(1, build_number);
         getEntryNumberFromBuildNumber.execute();
         ResultSet resultSet = getEntryNumberFromBuildNumber.getResultSet();
+        if (resultSet.next()) {
+            return resultSet.getInt(1);
+        } else {
+            return 0;
+        }
+    }
+
+    public int getEntryNumberFromBuildNumberAndParser(int build_number, String parser) throws SQLException {
+        getEntryNumberFromBuildNumberAndParser.setInt(1, build_number);
+        getEntryNumberFromBuildNumberAndParser.setString(2, parser);
+        getEntryNumberFromBuildNumberAndParser.execute();
+        ResultSet resultSet = getEntryNumberFromBuildNumberAndParser.getResultSet();
         if (resultSet.next()) {
             return resultSet.getInt(1);
         } else {

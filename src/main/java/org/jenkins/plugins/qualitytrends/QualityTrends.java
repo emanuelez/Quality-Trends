@@ -78,6 +78,17 @@ public class QualityTrends extends Recorder {
         }
         logger.println(MessageFormat.format("[QualityTrends] {0} entries were found.", entryNumber));
 
+        for (Parser parser : parsers) {
+            try {
+                entryNumber = storage.getEntryNumberForBuildAndParser(build, parser);
+            } catch (QualityTrendsException e) {
+                logger.println("[QualityTrends] [ERROR] Could not get the number of entries for this build and this parser from the DB");
+                e.printStackTrace();
+                return false;
+            }
+            logger.println(MessageFormat.format("[QualityTrends] {0} entries for the {1} parser", entryNumber, parser.getName()));
+        }
+
         return true;
     }
 

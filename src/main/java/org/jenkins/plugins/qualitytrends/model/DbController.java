@@ -94,5 +94,7 @@ public interface DbController {
      */
     public Build getBuildFromBuildNumber(int build_number) throws SQLException;
 
-    int getEntryNumberForBuildNumber(int build_number) throws SQLException;
+    int getEntryNumberFromBuildNumber(int build_number) throws SQLException;
+
+    int getEntryNumberFromBuildNumberAndParser(int build_number, String parser) throws SQLException;
 }
