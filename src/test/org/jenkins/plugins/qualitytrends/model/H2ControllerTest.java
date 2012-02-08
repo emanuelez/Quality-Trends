@@ -72,6 +72,14 @@ public class H2ControllerTest extends TestCase {
         } catch (SQLException e) {
             fail("Could not associate a commit to a build");
         }
+
+        try {
+            Build build = controller.getBuildFromBuildNumber(1);
+            System.out.println(build);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            fail("Could not get the build");
+        }
     }
 
     @Override

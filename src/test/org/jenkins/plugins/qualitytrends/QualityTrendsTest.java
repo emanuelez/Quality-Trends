@@ -9,8 +9,9 @@ import org.jenkins.plugins.qualitytrends.model.ParserResult;
 import org.jenkins.plugins.qualitytrends.model.Severity;
 import org.jvnet.hudson.test.HudsonTestCase;
 
-import java.io.File;
+import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 
 import static org.mockito.Matchers.any;
@@ -22,14 +23,38 @@ import static org.mockito.Mockito.when;
  */
 public class QualityTrendsTest extends HudsonTestCase {
 
-    public void test() throws Exception {
-        FreeStyleProject project = createFreeStyleProject();
-        project.getBuildersList().add(new Shell("echo hello"));
-        project.getPublishersList().add(new QualityTrends(createParserIterable()));
+    public void test(){
+        FreeStyleProject project = null;
+        try {
+            project = createFreeStyleProject();
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail("Could not create project");
+        }
+        try {
+            project.getBuildersList().add(new Shell("echo hello"));
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail("Could not add Builder");
+        }
+        try {
+            project.getPublishersList().add(new QualityTrends(createParserIterable()));
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail("Could not add Publisher");
+        }
 
-        FreeStyleBuild build = project.scheduleBuild2(0).get();
+        FreeStyleBuild build = null;
+        try {
+            build = project.scheduleBuild2(0).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            fail("The build got interrupted");
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+            fail("There was an execution exception");
+        }
         System.out.println(build.getDisplayName()+" completed");
-
     }
     
     private Parser createMockParser() {
@@ -40,7 +65,7 @@ public class QualityTrendsTest extends HudsonTestCase {
                 .thenReturn(new ParserResult(
                         "Mock Parser",
                         Severity.INFO,
-                        new File("."),
+                        ".",
                         0,
                         "Mock message" ));
         return parser;

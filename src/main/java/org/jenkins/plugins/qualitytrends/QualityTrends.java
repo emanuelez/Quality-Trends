@@ -49,6 +49,7 @@ public class QualityTrends extends Recorder {
             handler = parserResultHandlerFactory.create(build);
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();

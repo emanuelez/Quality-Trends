@@ -76,4 +76,20 @@ public interface DbController {
      * @throws SQLException in case of any problem
      */
     public void tearDownDb() throws SQLException;
+
+    /**
+     * Add a build if its number is not in the DB already
+     * @param build_number Jenkins build number
+     * @throws SQLException in case of any problem
+     * @return the build id in the DB
+     */
+    public int addBuildIfNew(int build_number) throws SQLException;
+
+    /**
+     * Get a build from its build number
+     * @param build_number Jenkins build number
+     * @return the Build object relative to the build number or null if none was found
+     * @throws SQLException in case of any problem
+     */
+    public Build getBuildFromBuildNumber(int build_number) throws SQLException;
 }

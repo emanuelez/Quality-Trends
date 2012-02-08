@@ -20,6 +20,7 @@ public class H2Controller implements DbController {
     private PreparedStatement addWarning;
     private PreparedStatement associateWarningToEntry;
     private PreparedStatement tearDown;
+    private PreparedStatement getBuildFromBuildNumber;
 
     @Inject
     public H2Controller(@Assisted String path) {
@@ -78,6 +79,10 @@ public class H2Controller implements DbController {
         url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/tearDown.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         tearDown = connection.prepareStatement(sql);
+
+        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getBuildFromBuildNumber.sql");
+        sql = Resources.toString(url, Charsets.ISO_8859_1);
+        getBuildFromBuildNumber = connection.prepareStatement(sql);
     }
 
     private boolean isSchemaOK() throws SQLException {
@@ -161,5 +166,29 @@ public class H2Controller implements DbController {
 
     public void tearDownDb() throws SQLException {
         tearDown.execute();
+    }
+
+    public Build getBuildFromBuildNumber(int build_number) throws SQLException {
+        getBuildFromBuildNumber.setInt(1, build_number);
+        getBuildFromBuildNumber.execute();
+        ResultSet resultSet = getBuildFromBuildNumber.getResultSet();
+        if (resultSet.next()) {
+            Build build = new Build(
+                    resultSet.getInt("build_id"), 
+                    resultSet.getInt("build_number"),
+                    resultSet.getString("commit_sha1"));
+            return build;
+        } else {
+            return null;
+        }
+    }
+
+    public int addBuildIfNew(int build_number) throws SQLException {
+        Build build = getBuildFromBuildNumber(build_number);
+        if (build == null) {
+            return addBuild(build_number);
+        } else {
+            return build.getBuild_id();
+        }
     }
 }

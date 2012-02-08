@@ -2,33 +2,34 @@ package org.jenkins.plugins.qualitytrends.model;
 
 import com.google.common.base.Objects;
 
-import java.io.File;
-
 /**
  * @author Emanuele Zattin
  */
 public class ParserResult {
     private String parser;
     private Severity severity;
-    private File file;
+    private String file;
     private int lineNumber;
+    private String issueId;
     private String message;
     private String link;
 
-    public ParserResult(String parser, Severity severity, File file, int lineNumber, String message) {
+    public ParserResult(String parser, Severity severity, String file, int lineNumber, String message) {
         this.parser = parser;
         this.severity = severity;
         this.file = file;
         this.lineNumber = lineNumber;
+        this.issueId = null;
         this.message = message;
         this.link = null;
     }
 
-    public ParserResult(String parser, Severity severity, File file, int lineNumber, String message, String link) {
+    public ParserResult(String parser, Severity severity, String file, int lineNumber, String issueId, String message, String link) {
         this.parser = parser;
         this.severity = severity;
         this.file = file;
         this.lineNumber = lineNumber;
+        this.issueId = issueId;
         this.message = message;
         this.link = link;
     }
@@ -41,7 +42,7 @@ public class ParserResult {
         return severity;
     }
 
-    public File getFile() {
+    public String getFile() {
         return file;
     }
 
@@ -55,6 +56,10 @@ public class ParserResult {
 
     public String getLink() {
         return link;
+    }
+
+    public String getIssueId() {
+        return issueId;
     }
 
     @Override
