@@ -3,7 +3,7 @@ package org.jenkins.plugins.qualitytrends.model;
 /**
  * @author Emanuele Zattin
  */
-public interface ParserResultHandler {
+public interface StorageManager {
 
     abstract public void add(ParserResult parserResult) throws QualityTrendsException;
 

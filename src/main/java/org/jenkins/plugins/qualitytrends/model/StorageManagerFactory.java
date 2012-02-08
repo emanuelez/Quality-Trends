@@ -5,6 +5,6 @@ import hudson.model.AbstractBuild;
 /**
  * @author Emanuele Zattin
  */
-public interface ParserResultHandlerFactory {
-    public ParserResultHandler create(AbstractBuild build);
+public interface StorageManagerFactory {
+    public StorageManager create(AbstractBuild build);
 }

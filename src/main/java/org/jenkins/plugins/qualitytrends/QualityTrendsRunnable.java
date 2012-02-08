@@ -8,9 +8,8 @@ import hudson.matrix.MatrixProject;
 import hudson.model.AbstractBuild;
 import hudson.model.Project;
 import hudson.tasks.Publisher;
-import org.jenkins.plugins.qualitytrends.QualityTrends;
 import org.jenkins.plugins.qualitytrends.model.Parser;
-import org.jenkins.plugins.qualitytrends.model.ParserResultHandler;
+import org.jenkins.plugins.qualitytrends.model.StorageManager;
 import org.jenkins.plugins.qualitytrends.model.QualityTrendsException;
 
 import java.io.FileReader;
@@ -27,9 +26,9 @@ public class QualityTrendsRunnable implements Runnable {
 
     private AbstractBuild build;
     @Inject
-    private ParserResultHandler handler;
+    private StorageManager handler;
 
-    public QualityTrendsRunnable(AbstractBuild build, ParserResultHandler handler) {
+    public QualityTrendsRunnable(AbstractBuild build, StorageManager handler) {
         this.build = build;
         this.handler = handler;
     }

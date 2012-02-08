@@ -9,9 +9,9 @@ import com.google.inject.assistedinject.FactoryProvider;
 public class QualityTrendsModule extends AbstractModule {
     @Override
     protected void configure() {
-        bind(ParserResultHandlerFactory.class).toProvider(
+        bind(StorageManagerFactory.class).toProvider(
                 FactoryProvider.newFactory(
-                        ParserResultHandlerFactory.class, H2Handler.class));
+                        StorageManagerFactory.class, H2StorageManager.class));
         bind(DbControllerFactory.class).toProvider(
                 FactoryProvider.newFactory(
                         DbControllerFactory.class, H2Controller.class));

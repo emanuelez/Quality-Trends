@@ -15,6 +15,7 @@ import org.jenkins.plugins.qualitytrends.model.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -26,7 +27,7 @@ public class QualityTrends extends Recorder {
 
     private Iterable<Parser> parsers;
     private Future future;
-    private ParserResultHandler handler;
+    private StorageManager handler;
     private Injector injector;
 
     public BuildStepMonitor getRequiredMonitorService() {
@@ -45,8 +46,8 @@ public class QualityTrends extends Recorder {
         injector = Guice.createInjector(new QualityTrendsModule());
         System.out.println("Prebuild Middle!");
         try {
-            ParserResultHandlerFactory parserResultHandlerFactory = injector.getInstance(ParserResultHandlerFactory.class);
-            handler = parserResultHandlerFactory.create(build);
+            StorageManagerFactory storageManagerFactory = injector.getInstance(StorageManagerFactory.class);
+            handler = storageManagerFactory.create(build);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -61,9 +62,14 @@ public class QualityTrends extends Recorder {
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
+        final PrintStream logger = listener.getLogger();
+        
+        logger.println("Waiting for the entries to be stored...");
         while(!future.isDone()) {
             Thread.sleep(1000);
         }
+        logger.println("DONE.");
+
         return true;
     }
 
