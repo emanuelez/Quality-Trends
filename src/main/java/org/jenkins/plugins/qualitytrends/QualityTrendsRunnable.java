@@ -26,11 +26,11 @@ public class QualityTrendsRunnable implements Runnable {
 
     private AbstractBuild build;
     @Inject
-    private StorageManager handler;
+    private StorageManager storage;
 
-    public QualityTrendsRunnable(AbstractBuild build, StorageManager handler) {
+    public QualityTrendsRunnable(AbstractBuild build, StorageManager storage) {
         this.build = build;
-        this.handler = handler;
+        this.storage = storage;
     }
 
     public void run() {
@@ -76,7 +76,7 @@ public class QualityTrendsRunnable implements Runnable {
                         Matcher matcher = patterns.get(parser).matcher(line);
                         if (matcher.matches()) {
                             System.out.println("Line: " + line);
-                            handler.add(parser.getParserResult(matcher));
+                            storage.addParserResult(parser.getParserResult(matcher));
                         }
                     }
                 }

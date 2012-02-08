@@ -9,6 +9,7 @@ import com.google.inject.internal.Nullable;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.*;
+import java.util.Set;
 
 public class H2Controller implements DbController {
 
@@ -21,6 +22,7 @@ public class H2Controller implements DbController {
     private PreparedStatement associateWarningToEntry;
     private PreparedStatement tearDown;
     private PreparedStatement getBuildFromBuildNumber;
+    private PreparedStatement getEntryNumberFromBuildNumber;
 
     @Inject
     public H2Controller(@Assisted String path) {
@@ -83,6 +85,10 @@ public class H2Controller implements DbController {
         url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getBuildFromBuildNumber.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         getBuildFromBuildNumber = connection.prepareStatement(sql);
+
+        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getEntryNumberFromBuildNumber.sql");
+        sql = Resources.toString(url, Charsets.ISO_8859_1);
+        getEntryNumberFromBuildNumber = connection.prepareStatement(sql);
     }
 
     private boolean isSchemaOK() throws SQLException {
@@ -180,6 +186,17 @@ public class H2Controller implements DbController {
             return build;
         } else {
             return null;
+        }
+    }
+
+    public int getEntryNumberForBuildNumber(int build_number) throws SQLException {
+        getEntryNumberFromBuildNumber.setInt(1, build_number);
+        getEntryNumberFromBuildNumber.execute();
+        ResultSet resultSet = getEntryNumberFromBuildNumber.getResultSet();
+        if (resultSet.next()) {
+            return resultSet.getInt(1);
+        } else {
+            return 0;
         }
     }
 

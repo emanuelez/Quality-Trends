@@ -1,6 +1,7 @@
 package org.jenkins.plugins.qualitytrends;
 
 import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.Shell;
@@ -10,6 +11,8 @@ import org.jenkins.plugins.qualitytrends.model.Severity;
 import org.jvnet.hudson.test.HudsonTestCase;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
@@ -55,6 +58,15 @@ public class QualityTrendsTest extends HudsonTestCase {
             fail("There was an execution exception");
         }
         System.out.println(build.getDisplayName()+" completed");
+        try {
+            final List<String> logLines = Files.readLines(build.getLogFile(), Charset.defaultCharset());
+            for (String logLine : logLines) {
+                System.out.println(logLine);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail("Could not read log file");
+        }
     }
     
     private Parser createMockParser() {

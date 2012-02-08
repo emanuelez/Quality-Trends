@@ -7,15 +7,13 @@ import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Publisher;
-import hudson.tasks.Recorder;
+import hudson.tasks.*;
 import org.jenkins.plugins.qualitytrends.model.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.text.MessageFormat;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -27,7 +25,7 @@ public class QualityTrends extends Recorder {
 
     private Iterable<Parser> parsers;
     private Future future;
-    private StorageManager handler;
+    private StorageManager storage;
     private Injector injector;
 
     public BuildStepMonitor getRequiredMonitorService() {
@@ -47,14 +45,14 @@ public class QualityTrends extends Recorder {
         System.out.println("Prebuild Middle!");
         try {
             StorageManagerFactory storageManagerFactory = injector.getInstance(StorageManagerFactory.class);
-            handler = storageManagerFactory.create(build);
+            storage = storageManagerFactory.create(build);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        future = executorService.submit(new QualityTrendsRunnable(build, handler));
+        future = executorService.submit(new QualityTrendsRunnable(build, storage));
         System.out.println("Prebuild Done!");
         return true;
     }
@@ -64,11 +62,21 @@ public class QualityTrends extends Recorder {
             throws InterruptedException, IOException {
         final PrintStream logger = listener.getLogger();
         
-        logger.println("Waiting for the entries to be stored...");
+        logger.println("[QualityTrends] Waiting for the entries to be stored...");
         while(!future.isDone()) {
             Thread.sleep(1000);
         }
-        logger.println("DONE.");
+        logger.println("[QualityTrends] DONE.");
+
+        int entryNumber;
+        try {
+            entryNumber = storage.getEntryNumberForBuild(build);
+        } catch (QualityTrendsException e) {
+            logger.println("[QualityTrends] [ERROR] Could not get the number of entries for this build from the DB");
+            e.printStackTrace();
+            return false;
+        }
+        logger.println(MessageFormat.format("[QualityTrends] {0} entries were found.", entryNumber));
 
         return true;
     }

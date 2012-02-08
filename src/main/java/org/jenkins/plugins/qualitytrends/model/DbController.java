@@ -3,6 +3,7 @@ package org.jenkins.plugins.qualitytrends.model;
 import com.google.inject.internal.Nullable;
 
 import java.sql.SQLException;
+import java.util.Set;
 
 /**
  * Defines the access to a database
@@ -92,4 +93,6 @@ public interface DbController {
      * @throws SQLException in case of any problem
      */
     public Build getBuildFromBuildNumber(int build_number) throws SQLException;
+
+    int getEntryNumberForBuildNumber(int build_number) throws SQLException;
 }

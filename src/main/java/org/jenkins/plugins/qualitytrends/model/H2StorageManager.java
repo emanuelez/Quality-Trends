@@ -6,6 +6,7 @@ import hudson.model.AbstractBuild;
 
 import java.io.File;
 import java.sql.SQLException;
+import java.util.Set;
 
 /**
  * @author Emanuele Zattin
@@ -23,7 +24,7 @@ public class H2StorageManager implements StorageManager {
         build_id = controller.addBuildIfNew(build.getNumber());
     }
 
-    public void add(ParserResult parserResult) throws QualityTrendsException {
+    public void addParserResult(ParserResult parserResult) throws QualityTrendsException {
         try {
             controller.addEntry(
                     build_id,
@@ -44,5 +45,14 @@ public class H2StorageManager implements StorageManager {
     public void remove(ParserResult parserResult) throws QualityTrendsException {
         // TODO: implement the method
 
+    }
+
+    public int getEntryNumberForBuild(AbstractBuild<?, ?> build) throws QualityTrendsException {
+        try {
+            return controller.getEntryNumberForBuildNumber(build.getNumber());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new QualityTrendsException("Could not count entries");
+        }
     }
 }
