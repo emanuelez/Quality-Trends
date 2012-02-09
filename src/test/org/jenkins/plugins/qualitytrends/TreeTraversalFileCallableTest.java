@@ -40,6 +40,13 @@ public class TreeTraversalFileCallableTest extends TestCase {
         File leaf1 = mock(File.class);
         File leaf2 = mock(File.class);
         
+        when(root.toString()).thenReturn("root");
+        when(child1.toString()).thenReturn("child1");
+        when(child2.toString()).thenReturn("child2");
+        when(childa.toString()).thenReturn("childa");
+        when(leaf1.toString()).thenReturn("leaf1");
+        when(leaf2.toString()).thenReturn("leaf2");
+        
         when(root.isFile()).thenReturn(false);
         when(child1.isFile()).thenReturn(false);
         when(child2.isFile()).thenReturn(false);
@@ -68,7 +75,7 @@ public class TreeTraversalFileCallableTest extends TestCase {
         relative.add("leaf1");
         relative.add("child2/childa/leaf2");
 
-        TreeTraversalFileCallable callable = new TreeTraversalFileCallable(relative);
+        TreeTraversalFileCallable callable = new TreeTraversalFileCallable(relative, 500);
         Map<String,String> result = callable.invoke(root, mock(VirtualChannel.class));
 
         assertTrue("/absolute/root/leaf1".equals(result.get("leaf1")));

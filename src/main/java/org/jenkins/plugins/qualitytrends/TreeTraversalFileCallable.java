@@ -8,10 +8,7 @@ import hudson.remoting.VirtualChannel;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
 
 /**
  * A FilePath.FileCallable that, given a set of relative paths returns
@@ -23,14 +20,16 @@ import java.util.Stack;
 public class TreeTraversalFileCallable implements FilePath.FileCallable<Map<String, String>> {
 
     private Set<String> fileNames;
+    private int maxLevel;
     private Map<String, String> result = Maps.newHashMap();
 
     /**
      * Constructor
      * @param fileNames the set of relatives file names.
      */
-    public TreeTraversalFileCallable(Set<String> fileNames) {
+    public TreeTraversalFileCallable(Set<String> fileNames, int maxLevel) {
         this.fileNames = fileNames;
+        this.maxLevel = maxLevel;
     }
 
     /**
@@ -44,16 +43,30 @@ public class TreeTraversalFileCallable implements FilePath.FileCallable<Map<Stri
      * @throws InterruptedException
      */
     public Map<String, String> invoke(File root, VirtualChannel channel) throws IOException, InterruptedException {
+        
+        int level = 0;
+        File nextLevelJump = root;
+        boolean flagJump = false;
 
-        Stack<File> toVisit = new Stack<File>();
-        toVisit.push(root);
+        Queue<File> toVisit = new LinkedList<File>();
+        toVisit.add(root);
 
         while (!toVisit.isEmpty()) {
-            File currentNode = toVisit.pop();
-            System.out.println(currentNode + " : " + currentNode.isDirectory());
+            if (level >= maxLevel) {
+                return result;
+            }
+            File currentNode = toVisit.poll();
+            if(currentNode == nextLevelJump) {
+                level++;
+                flagJump = true;
+            }
             if (currentNode.isDirectory()) {
                 for (File child : currentNode.listFiles()) {
-                    toVisit.push(child);
+                    if(flagJump) {
+                        flagJump = false;
+                        nextLevelJump = child;
+                    }
+                    toVisit.add(child);
                 }
             } else if (currentNode.isFile()) {
                 compute(currentNode);
