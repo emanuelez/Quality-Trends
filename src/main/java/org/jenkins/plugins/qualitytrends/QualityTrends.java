@@ -68,6 +68,15 @@ public class QualityTrends extends Recorder {
         }
         logger.println("[QualityTrends] DONE.");
 
+        // Print info about the entries found
+        if (!recapEntries(build, logger)) return false;
+
+        // Find the files associated to the entries
+
+        return true;
+    }
+
+    private boolean recapEntries(AbstractBuild<?, ?> build, PrintStream logger) {
         int entryNumber;
         try {
             entryNumber = storage.getEntryNumberForBuild(build);
@@ -88,7 +97,6 @@ public class QualityTrends extends Recorder {
             }
             logger.println(MessageFormat.format("[QualityTrends] {0} entries for the {1} parser", entryNumber, parser.getName()));
         }
-
         return true;
     }
 

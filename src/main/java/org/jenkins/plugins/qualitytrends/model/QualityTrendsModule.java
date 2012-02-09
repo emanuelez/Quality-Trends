@@ -11,7 +11,7 @@ public class QualityTrendsModule extends AbstractModule {
     protected void configure() {
         bind(StorageManagerFactory.class).toProvider(
                 FactoryProvider.newFactory(
-                        StorageManagerFactory.class, H2StorageManager.class));
+                        StorageManagerFactory.class, DbStorageManager.class));
         bind(DbControllerFactory.class).toProvider(
                 FactoryProvider.newFactory(
                         DbControllerFactory.class, H2Controller.class));

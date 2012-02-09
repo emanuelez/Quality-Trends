@@ -10,16 +10,15 @@ import java.sql.SQLException;
 /**
  * @author Emanuele Zattin
  */
-public class H2StorageManager implements StorageManager {
+public class DbStorageManager implements StorageManager {
     
     private int build_id;
     private DbController controller;
 
     @Inject
-    public H2StorageManager(@Assisted AbstractBuild build) throws SQLException {
-        String dbPath = new File(build.getParent().getRootDir(), "qualityTrends.h2").getAbsolutePath();
-        System.out.println("Path: " + dbPath);
-        controller = new H2Controller(dbPath);
+    public DbStorageManager(@Assisted AbstractBuild build, DbControllerFactory controllerFactory) throws SQLException {
+        String url = new File(build.getParent().getRootDir(), "qualityTrends").getAbsolutePath();
+        this.controller = controllerFactory.create(url);
         build_id = controller.addBuildIfNew(build.getNumber());
     }
 
