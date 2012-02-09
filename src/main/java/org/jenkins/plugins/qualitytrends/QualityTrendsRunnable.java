@@ -9,8 +9,8 @@ import hudson.model.AbstractBuild;
 import hudson.model.Project;
 import hudson.tasks.Publisher;
 import org.jenkins.plugins.qualitytrends.model.Parser;
-import org.jenkins.plugins.qualitytrends.model.StorageManager;
 import org.jenkins.plugins.qualitytrends.model.QualityTrendsException;
+import org.jenkins.plugins.qualitytrends.model.StorageManager;
 
 import java.io.FileReader;
 import java.io.IOException;

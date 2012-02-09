@@ -9,7 +9,6 @@ import com.google.inject.internal.Nullable;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.*;
-import java.util.Set;
 
 public class H2Controller implements DbController {
 

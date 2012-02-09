@@ -3,7 +3,6 @@ package org.jenkins.plugins.qualitytrends.model;
 import com.google.inject.internal.Nullable;
 
 import java.sql.SQLException;
-import java.util.Set;
 
 /**
  * Defines the access to a database
