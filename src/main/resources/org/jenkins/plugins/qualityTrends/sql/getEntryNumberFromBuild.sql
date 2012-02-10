@@ -1,0 +1,1 @@
+SELECT COUNT(*) FROM entries WHERE build_id = ?;

@@ -17,7 +17,7 @@ public class ParserResult {
     public ParserResult(String parser, Severity severity, String file, int lineNumber, String message) {
         this.parser = parser;
         this.severity = severity;
-        this.file = file;
+        this.file = convert(file);
         this.lineNumber = lineNumber;
         this.issueId = null;
         this.message = message;
@@ -32,6 +32,10 @@ public class ParserResult {
         this.issueId = issueId;
         this.message = message;
         this.link = link;
+    }
+
+    private String convert(String file) {
+        return file.replace("\\","/" );
     }
 
     public String getParser() {

@@ -7,15 +7,15 @@ import java.util.Set;
 /**
  * @author Emanuele Zattin
  */
-public interface StorageManager {
+public interface BuildStorageManager {
 
     abstract public void addParserResult(ParserResult parserResult) throws QualityTrendsException;
 
     abstract public void remove(ParserResult parserResult) throws QualityTrendsException;
 
-    int getEntryNumberForBuild(AbstractBuild<?, ?> build) throws QualityTrendsException;
+    int getEntryNumberForBuild() throws QualityTrendsException;
     
-    int getEntryNumberForBuildAndParser(AbstractBuild<?, ?> build, Parser parser) throws QualityTrendsException;
+    int getEntryNumberForBuildAndParser(Parser parser) throws QualityTrendsException;
 
     Set<String> getFileNames() throws QualityTrendsException;
 }

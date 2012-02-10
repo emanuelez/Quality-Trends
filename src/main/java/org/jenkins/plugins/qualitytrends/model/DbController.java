@@ -94,9 +94,9 @@ public interface DbController {
      */
     public Build getBuildFromBuildNumber(int build_number) throws SQLException;
 
-    int getEntryNumberFromBuildNumber(int build_number) throws SQLException;
+    int getEntryNumberFromBuild(int build_id) throws SQLException;
 
-    int getEntryNumberFromBuildNumberAndParser(int build_number, String parser) throws SQLException;
+    int getEntryNumberFromBuildAndParser(int build_id, String parser) throws SQLException;
 
     Set<String> getFileNames(int build_id) throws SQLException;
 }

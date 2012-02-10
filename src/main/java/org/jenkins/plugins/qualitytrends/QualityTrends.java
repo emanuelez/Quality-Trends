@@ -1,5 +1,8 @@
 package org.jenkins.plugins.qualitytrends;
 
+import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import hudson.Extension;
@@ -17,10 +20,12 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.text.MessageFormat;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.regex.Pattern;
 
 /**
  * @author Emanuele Zattin
@@ -29,7 +34,7 @@ public class QualityTrends extends Recorder {
 
     private Iterable<Parser> parsers;
     private Future future;
-    private StorageManager storage;
+    private BuildStorageManager storage;
 
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
@@ -47,8 +52,8 @@ public class QualityTrends extends Recorder {
         Injector injector = Guice.createInjector(new QualityTrendsModule());
         System.out.println("Prebuild Middle!");
         try {
-            StorageManagerFactory storageManagerFactory = injector.getInstance(StorageManagerFactory.class);
-            storage = storageManagerFactory.create(build);
+            BuildStorageManagerFactory buildStorageManagerFactory = injector.getInstance(BuildStorageManagerFactory.class);
+            storage = buildStorageManagerFactory.create(build);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -72,26 +77,38 @@ public class QualityTrends extends Recorder {
         logger.println("[QualityTrends] DONE.");
 
         // Print info about the entries found
-        if (!recapEntries(build, logger)) return false;
+        if (!recapEntries(logger)) return false;
 
-        // Find the files associated to the entries
+        // Find the files names associated to the entries
+        Set<String> allFileNames;
         try {
-            Set<String> allFilenames = storage.getFileNames();
-            logger.println("[QualityTrends] " + allFilenames.size() + " paths found");
+            allFileNames = storage.getFileNames();
+            logger.println("[QualityTrends] " + allFileNames.size() + " paths found");
         } catch (QualityTrendsException e) {
-            logger.println("[QualityTrends] Could not retrieve the file names from the DB");
+            logger.println("[QualityTrends] [ERROR] Could not retrieve the file names from the DB");
             e.printStackTrace();
             return false;
         }
+        
+        // Filter out the absolute paths
+        Set<String> relativePaths = Sets.filter(
+                allFileNames,
+                Predicates.not(
+                    Predicates.contains(
+                        Pattern.compile("^([a-zA-Z]:)?/.*"))));
+        logger.println("[QualityTrends] " + relativePaths.size() + " relative paths were found");
 
+        // Find the absolute paths
+        Map<String,String> absolutePaths = build.getWorkspace().act(new TreeTraversalFileCallable(relativePaths, 500));
+        logger.println("[QualityTrends] " + absolutePaths.size() + " absolute paths were found after traversing the work area");
 
         return true;
     }
 
-    private boolean recapEntries(AbstractBuild<?, ?> build, PrintStream logger) {
+    private boolean recapEntries(PrintStream logger) {
         int entryNumber;
         try {
-            entryNumber = storage.getEntryNumberForBuild(build);
+            entryNumber = storage.getEntryNumberForBuild();
         } catch (QualityTrendsException e) {
             logger.println("[QualityTrends] [ERROR] Could not get the number of entries for this build from the DB");
             e.printStackTrace();
@@ -101,7 +118,7 @@ public class QualityTrends extends Recorder {
 
         for (Parser parser : parsers) {
             try {
-                entryNumber = storage.getEntryNumberForBuildAndParser(build, parser);
+                entryNumber = storage.getEntryNumberForBuildAndParser(parser);
             } catch (QualityTrendsException e) {
                 logger.println("[QualityTrends] [ERROR] Could not get the number of entries for this build and this parser from the DB");
                 e.printStackTrace();

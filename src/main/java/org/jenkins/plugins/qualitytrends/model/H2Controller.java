@@ -23,8 +23,8 @@ public class H2Controller implements DbController {
     private PreparedStatement associateWarningToEntry;
     private PreparedStatement tearDown;
     private PreparedStatement getBuildFromBuildNumber;
-    private PreparedStatement getEntryNumberFromBuildNumber;
-    private PreparedStatement getEntryNumberFromBuildNumberAndParser;
+    private PreparedStatement getEntryNumberFromBuild;
+    private PreparedStatement getEntryNumberFromBuildAndParser;
     private PreparedStatement getFileNamesFromBuild;
 
     @Inject
@@ -89,13 +89,13 @@ public class H2Controller implements DbController {
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         getBuildFromBuildNumber = connection.prepareStatement(sql);
 
-        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getEntryNumberFromBuildNumber.sql");
+        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getEntryNumberFromBuild.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
-        getEntryNumberFromBuildNumber = connection.prepareStatement(sql);
+        getEntryNumberFromBuild = connection.prepareStatement(sql);
 
-        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getEntryNumberFromBuildNumberAndParser.sql");
+        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getEntryNumberFromBuildAndParser.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
-        getEntryNumberFromBuildNumberAndParser = connection.prepareStatement(sql);
+        getEntryNumberFromBuildAndParser = connection.prepareStatement(sql);
         
         url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getFileNamesFromBuild.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
@@ -200,10 +200,10 @@ public class H2Controller implements DbController {
         }
     }
 
-    public int getEntryNumberFromBuildNumber(int build_number) throws SQLException {
-        getEntryNumberFromBuildNumber.setInt(1, build_number);
-        getEntryNumberFromBuildNumber.execute();
-        ResultSet resultSet = getEntryNumberFromBuildNumber.getResultSet();
+    public int getEntryNumberFromBuild(int build_id) throws SQLException {
+        getEntryNumberFromBuild.setInt(1, build_id);
+        getEntryNumberFromBuild.execute();
+        ResultSet resultSet = getEntryNumberFromBuild.getResultSet();
         if (resultSet.next()) {
             return resultSet.getInt(1);
         } else {
@@ -211,11 +211,11 @@ public class H2Controller implements DbController {
         }
     }
 
-    public int getEntryNumberFromBuildNumberAndParser(int build_number, String parser) throws SQLException {
-        getEntryNumberFromBuildNumberAndParser.setInt(1, build_number);
-        getEntryNumberFromBuildNumberAndParser.setString(2, parser);
-        getEntryNumberFromBuildNumberAndParser.execute();
-        ResultSet resultSet = getEntryNumberFromBuildNumberAndParser.getResultSet();
+    public int getEntryNumberFromBuildAndParser(int build_id, String parser) throws SQLException {
+        getEntryNumberFromBuildAndParser.setInt(1, build_id);
+        getEntryNumberFromBuildAndParser.setString(2, parser);
+        getEntryNumberFromBuildAndParser.execute();
+        ResultSet resultSet = getEntryNumberFromBuildAndParser.getResultSet();
         if (resultSet.next()) {
             return resultSet.getInt(1);
         } else {
@@ -224,9 +224,9 @@ public class H2Controller implements DbController {
     }
 
     public Set<String> getFileNames(int build_id) throws SQLException {
-        getBuildFromBuildNumber.setInt(1, build_id);
-        getBuildFromBuildNumber.execute();
-        ResultSet resultSet = getBuildFromBuildNumber.getResultSet();
+        getFileNamesFromBuild.setInt(1, build_id);
+        getFileNamesFromBuild.execute();
+        ResultSet resultSet = getFileNamesFromBuild.getResultSet();
         Set<String> fileNames = Sets.newHashSet();
         while (resultSet.next()) {
             fileNames.add(resultSet.getString(1));

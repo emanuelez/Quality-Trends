@@ -5,6 +5,6 @@ import hudson.model.AbstractBuild;
 /**
  * @author Emanuele Zattin
  */
-public interface StorageManagerFactory {
-    public StorageManager create(AbstractBuild build);
+public interface BuildStorageManagerFactory {
+    public BuildStorageManager create(AbstractBuild build);
 }

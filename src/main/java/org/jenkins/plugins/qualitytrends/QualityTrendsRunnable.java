@@ -10,7 +10,7 @@ import hudson.model.Project;
 import hudson.tasks.Publisher;
 import org.jenkins.plugins.qualitytrends.model.Parser;
 import org.jenkins.plugins.qualitytrends.model.QualityTrendsException;
-import org.jenkins.plugins.qualitytrends.model.StorageManager;
+import org.jenkins.plugins.qualitytrends.model.BuildStorageManager;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -26,9 +26,9 @@ public class QualityTrendsRunnable implements Runnable {
 
     private AbstractBuild build;
     @Inject
-    private StorageManager storage;
+    private BuildStorageManager storage;
 
-    public QualityTrendsRunnable(AbstractBuild build, StorageManager storage) {
+    public QualityTrendsRunnable(AbstractBuild build, BuildStorageManager storage) {
         this.build = build;
         this.storage = storage;
     }

@@ -11,13 +11,13 @@ import java.util.Set;
 /**
  * @author Emanuele Zattin
  */
-public class DbStorageManager implements StorageManager {
+public class DbBuildStorageManager implements BuildStorageManager {
     
     private int build_id;
     private DbController controller;
 
     @Inject
-    public DbStorageManager(@Assisted AbstractBuild build, DbControllerFactory controllerFactory) throws SQLException {
+    public DbBuildStorageManager(@Assisted AbstractBuild build, DbControllerFactory controllerFactory) throws SQLException {
         String url = new File(build.getParent().getRootDir(), "qualityTrends").getAbsolutePath();
         this.controller = controllerFactory.create(url);
         build_id = controller.addBuildIfNew(build.getNumber());
@@ -46,18 +46,18 @@ public class DbStorageManager implements StorageManager {
 
     }
 
-    public int getEntryNumberForBuild(AbstractBuild<?, ?> build) throws QualityTrendsException {
+    public int getEntryNumberForBuild() throws QualityTrendsException {
         try {
-            return controller.getEntryNumberFromBuildNumber(build.getNumber());
+            return controller.getEntryNumberFromBuild(build_id);
         } catch (SQLException e) {
             e.printStackTrace();
             throw new QualityTrendsException("Could not count entries");
         }
     }
 
-    public int getEntryNumberForBuildAndParser(AbstractBuild<?, ?> build, Parser parser) throws QualityTrendsException {
+    public int getEntryNumberForBuildAndParser(Parser parser) throws QualityTrendsException {
         try {
-            return controller.getEntryNumberFromBuildNumberAndParser(build.getNumber(), parser.getName());
+            return controller.getEntryNumberFromBuildAndParser(build_id, parser.getName());
         } catch (SQLException e) {
             e.printStackTrace();
             throw new QualityTrendsException("Could not count entries for parser");
