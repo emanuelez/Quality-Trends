@@ -2,6 +2,8 @@ package org.jenkins.plugins.qualitytrends.model;
 
 import hudson.model.AbstractBuild;
 
+import java.util.Set;
+
 /**
  * @author Emanuele Zattin
  */
@@ -14,4 +16,6 @@ public interface StorageManager {
     int getEntryNumberForBuild(AbstractBuild<?, ?> build) throws QualityTrendsException;
     
     int getEntryNumberForBuildAndParser(AbstractBuild<?, ?> build, Parser parser) throws QualityTrendsException;
+
+    Set<String> getFileNames() throws QualityTrendsException;
 }

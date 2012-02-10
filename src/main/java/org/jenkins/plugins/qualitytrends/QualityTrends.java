@@ -17,6 +17,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.text.MessageFormat;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -29,7 +30,6 @@ public class QualityTrends extends Recorder {
     private Iterable<Parser> parsers;
     private Future future;
     private StorageManager storage;
-    private Injector injector;
 
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
@@ -44,7 +44,7 @@ public class QualityTrends extends Recorder {
     public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
         System.out.println("Prebuild Started!");
         // Guice stuff
-        injector = Guice.createInjector(new QualityTrendsModule());
+        Injector injector = Guice.createInjector(new QualityTrendsModule());
         System.out.println("Prebuild Middle!");
         try {
             StorageManagerFactory storageManagerFactory = injector.getInstance(StorageManagerFactory.class);
@@ -75,6 +75,15 @@ public class QualityTrends extends Recorder {
         if (!recapEntries(build, logger)) return false;
 
         // Find the files associated to the entries
+        try {
+            Set<String> allFilenames = storage.getFileNames();
+            logger.println("[QualityTrends] " + allFilenames.size() + " paths found");
+        } catch (QualityTrendsException e) {
+            logger.println("[QualityTrends] Could not retrieve the file names from the DB");
+            e.printStackTrace();
+            return false;
+        }
+
 
         return true;
     }

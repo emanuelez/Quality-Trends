@@ -1,6 +1,7 @@
 package org.jenkins.plugins.qualitytrends.model;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -9,6 +10,7 @@ import com.google.inject.internal.Nullable;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.*;
+import java.util.Set;
 
 public class H2Controller implements DbController {
 
@@ -23,6 +25,7 @@ public class H2Controller implements DbController {
     private PreparedStatement getBuildFromBuildNumber;
     private PreparedStatement getEntryNumberFromBuildNumber;
     private PreparedStatement getEntryNumberFromBuildNumberAndParser;
+    private PreparedStatement getFileNamesFromBuild;
 
     @Inject
     public H2Controller(@Assisted String path) {
@@ -93,6 +96,10 @@ public class H2Controller implements DbController {
         url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getEntryNumberFromBuildNumberAndParser.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         getEntryNumberFromBuildNumberAndParser = connection.prepareStatement(sql);
+        
+        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getFileNamesFromBuild.sql");
+        sql = Resources.toString(url, Charsets.ISO_8859_1);
+        getFileNamesFromBuild = connection.prepareStatement(sql);
     }
 
     private boolean isSchemaOK() throws SQLException {
@@ -214,6 +221,17 @@ public class H2Controller implements DbController {
         } else {
             return 0;
         }
+    }
+
+    public Set<String> getFileNames(int build_id) throws SQLException {
+        getBuildFromBuildNumber.setInt(1, build_id);
+        getBuildFromBuildNumber.execute();
+        ResultSet resultSet = getBuildFromBuildNumber.getResultSet();
+        Set<String> fileNames = Sets.newHashSet();
+        while (resultSet.next()) {
+            fileNames.add(resultSet.getString(1));
+        }
+        return fileNames;
     }
 
     public int addBuildIfNew(int build_number) throws SQLException {

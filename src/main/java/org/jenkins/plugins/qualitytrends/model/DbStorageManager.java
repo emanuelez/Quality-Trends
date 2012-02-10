@@ -6,6 +6,7 @@ import hudson.model.AbstractBuild;
 
 import java.io.File;
 import java.sql.SQLException;
+import java.util.Set;
 
 /**
  * @author Emanuele Zattin
@@ -60,6 +61,15 @@ public class DbStorageManager implements StorageManager {
         } catch (SQLException e) {
             e.printStackTrace();
             throw new QualityTrendsException("Could not count entries for parser");
+        }
+    }
+
+    public Set<String> getFileNames() throws QualityTrendsException {
+        try {
+            return controller.getFileNames(build_id);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new QualityTrendsException("Could not get the file names");
         }
     }
 }
