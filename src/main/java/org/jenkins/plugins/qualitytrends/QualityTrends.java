@@ -1,7 +1,6 @@
 package org.jenkins.plugins.qualitytrends;
 
 import com.google.common.base.Predicates;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Injector;

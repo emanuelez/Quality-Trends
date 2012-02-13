@@ -1,7 +1,5 @@
 package org.jenkins.plugins.qualitytrends.model;
 
-import hudson.model.AbstractBuild;
-
 import java.util.Set;
 
 /**

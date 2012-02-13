@@ -70,7 +70,7 @@ public class QualityTrendsTest extends HudsonTestCase {
             fail("Could not read log file");
         }
     }
-    
+
     private Parser createMockParser() {
         Parser parser = mock(Parser.class);
         when(parser.getRegex())
@@ -86,7 +86,7 @@ public class QualityTrendsTest extends HudsonTestCase {
                 .thenReturn("MockParser");
         return parser;
     }
-    
+
     private Iterable<Parser> createParserIterable() {
         Set<Parser> i = Sets.newHashSet();
         i.add(createMockParser());
