@@ -18,6 +18,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.Set;
@@ -29,9 +30,9 @@ import java.util.regex.Pattern;
 /**
  * @author Emanuele Zattin
  */
-public class QualityTrends extends Recorder {
+public class QualityTrends extends Recorder implements Serializable {
 
-    private Iterable<Parser> parsers;
+    private Set<Parser> parsers;
     private Future future;
     private BuildStorageManager storage;
 
@@ -40,7 +41,7 @@ public class QualityTrends extends Recorder {
     }
 
     @DataBoundConstructor
-    public QualityTrends(Iterable<Parser> parsers) {
+    public QualityTrends(Set<Parser> parsers) {
         this.parsers = parsers;
     }
 
@@ -98,7 +99,7 @@ public class QualityTrends extends Recorder {
         logger.println("[QualityTrends] " + relativePaths.size() + " relative paths were found");
 
         // Find the absolute paths
-        Map<String,String> absolutePaths = build.getWorkspace().act(new TreeTraversalFileCallable(relativePaths, 500));
+        Map<String,String> absolutePaths = build.getWorkspace().act(new TreeTraversalFileCallable(Sets.newHashSet(relativePaths), 500));
         logger.println("[QualityTrends] " + absolutePaths.size() + " absolute paths were found after traversing the work area");
 
         return true;
@@ -136,6 +137,8 @@ public class QualityTrends extends Recorder {
     public Iterable<Parser> getParsers() {
         return parsers;
     }
+
+
 
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {

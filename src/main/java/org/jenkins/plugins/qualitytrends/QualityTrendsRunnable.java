@@ -72,11 +72,11 @@ public class QualityTrendsRunnable implements Runnable {
                 if (line == null) {
                     Thread.sleep(1000);
                 } else {
-                    for (Parser parser : patterns.keySet()) {
-                        Matcher matcher = patterns.get(parser).matcher(line);
+                    for (Map.Entry<Parser, Pattern> entry : patterns.entrySet()) {
+                        Matcher matcher = entry.getValue().matcher(line);
                         if (matcher.matches()) {
                             System.out.println("Line: " + line);
-                            storage.addParserResult(parser.getParserResult(matcher));
+                            storage.addParserResult(entry.getKey().getParserResult(matcher));
                         }
                     }
                 }
@@ -88,6 +88,8 @@ public class QualityTrendsRunnable implements Runnable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (QualityTrendsException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

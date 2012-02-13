@@ -2,12 +2,14 @@ package org.jenkins.plugins.qualitytrends;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import hudson.FilePath;
 import hudson.remoting.VirtualChannel;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -17,17 +19,20 @@ import java.util.*;
  * @author Emanuele Zattin
  */
 
-public class TreeTraversalFileCallable implements FilePath.FileCallable<Map<String, String>> {
+public class TreeTraversalFileCallable implements FilePath.FileCallable<Map<String, String>>, Serializable {
 
-    private Set<String> fileNames;
+    private static final long serialVersionUID = 7836272874278244L;
+
+    private HashSet<String> fileNames;
     private int maxLevel;
-    private Map<String, String> result = Maps.newHashMap();
+    private HashMap<String, String> result = Maps.newHashMap();
 
     /**
      * Constructor
      * @param fileNames the set of relatives file names.
+     * @param maxLevel maximum depth for the tree traversal
      */
-    public TreeTraversalFileCallable(Set<String> fileNames, int maxLevel) {
+    public TreeTraversalFileCallable(HashSet<String> fileNames, int maxLevel) {
         this.fileNames = fileNames;
         this.maxLevel = maxLevel;
     }
@@ -47,8 +52,7 @@ public class TreeTraversalFileCallable implements FilePath.FileCallable<Map<Stri
         int level = 0;
         File nextLevelJump = root;
         boolean flagJump = false;
-
-        Queue<File> toVisit = new LinkedList<File>();
+        Queue<File> toVisit = Lists.newLinkedList();
         toVisit.add(root);
 
         while (!toVisit.isEmpty()) {
@@ -86,7 +90,7 @@ public class TreeTraversalFileCallable implements FilePath.FileCallable<Map<Stri
         }
     }
     
-    private class EndsWith implements Predicate<String> {
+    private static class EndsWith implements Predicate<String> {
         
         private String absolutePath;
 
@@ -98,4 +102,6 @@ public class TreeTraversalFileCallable implements FilePath.FileCallable<Map<Stri
             return s != null && absolutePath.endsWith(s);
         }
     }
+
+
 }

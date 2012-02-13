@@ -12,8 +12,8 @@ import org.jvnet.hudson.test.HudsonTestCase;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 
@@ -87,8 +87,8 @@ public class QualityTrendsTest extends HudsonTestCase {
         return parser;
     }
 
-    private Iterable<Parser> createParserIterable() {
-        Set<Parser> i = Sets.newHashSet();
+    private HashSet<Parser> createParserIterable() {
+        HashSet<Parser> i = Sets.newHashSet();
         i.add(createMockParser());
         return i;
     }
