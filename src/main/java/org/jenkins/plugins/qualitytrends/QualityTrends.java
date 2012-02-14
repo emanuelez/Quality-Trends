@@ -57,7 +57,7 @@ public class QualityTrends extends Recorder implements Serializable {
     @Override
     public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
         logger = listener.getLogger();
-        info("Prebuild Started!");
+        info("Prebuild initiated...");
         // Guice stuff
         Injector injector = Guice.createInjector(new QualityTrendsModule());
         try {
@@ -70,7 +70,7 @@ public class QualityTrends extends Recorder implements Serializable {
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         future = executorService.submit(new QualityTrendsRunnable(build, storage));
-        info("Prebuild Done!");
+        info("Done");
         return true;
     }
 
@@ -78,46 +78,16 @@ public class QualityTrends extends Recorder implements Serializable {
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
         logger = listener.getLogger();
-        
-        File gitFolder = new File(build.getProject().getRootDir(), "QualityTrends");
-        if (!gitFolder.exists() && !gitFolder.isDirectory()) {
-            gitFolder.mkdir();
-        }
-        FileRepositoryBuilder builder = new FileRepositoryBuilder();
-        FileRepository repository = builder
-                .setWorkTree(gitFolder)
-                .findGitDir()
-                .build();
-        Git git = new Git(repository);
-        if (!(new File(gitFolder, ".git").isDirectory())) {
-            info("QualityTrends was not initialized yet. Initializing...");
-            git = Git.init().setDirectory(gitFolder).call();
-            File f = new File(build.getProject().getRootDir(), "QualityTrends/.buildNumber");
-            Files.write("0", f, Charset.defaultCharset());
-            try {
-                git.add().addFilepattern(".").call();
-                git.commit().setMessage("0").call();
-            } catch (GitAPIException e) {
-                error(e.getMessage());
-                e.printStackTrace();
-                return false;
-            }
-            info("Done.");
-        }
 
-        try {
-            git.checkout().setName("master").call();
-        } catch (GitAPIException e) {
-            error(e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
+        Initializer initializer = new Initializer(build).invoke();
+        if (initializer.isFailed()) return false;
+        Git git = initializer.getGit();
 
         info("Waiting for the entries to be stored...");
         while(!future.isDone()) {
             Thread.sleep(1000);
         }
-        info("DONE.");
+        info("Done");
 
         // Print info about the entries found
         if (!recapEntries(logger)) return false;
@@ -138,13 +108,19 @@ public class QualityTrends extends Recorder implements Serializable {
         info(absolutePaths.size() + " absolute paths were found after traversing the work area");
 
         // Copy the files to the Master
+        if (!copyFilesToMaster(build, git, absolutePaths)) return false;
+
+        return true;
+    }
+
+    private boolean copyFilesToMaster(AbstractBuild<?, ?> build, Git git, Map<String, String> absolutePaths) throws IOException, InterruptedException {
         VirtualChannel channel = build.getBuiltOn().getChannel();
         String workspacePath = build.getWorkspace().getRemote();
         for (String absolutePath : absolutePaths.values()) {
             // Get the relative path
             Preconditions.checkState(absolutePath.startsWith(workspacePath));
             String relativePath = absolutePath.substring(workspacePath.length());
-            
+
             FilePath source = new FilePath(channel, absolutePath);
 
             File localPath = new File(build.getProject().getRootDir(), "QualityTrends" + relativePath);
@@ -168,7 +144,6 @@ public class QualityTrends extends Recorder implements Serializable {
             return false;
         }
         info("Files copied to Master");
-
         return true;
     }
 
@@ -236,4 +211,61 @@ public class QualityTrends extends Recorder implements Serializable {
 
     }
 
+    private class Initializer {
+        private boolean failed;
+        private AbstractBuild<?, ?> build;
+        private Git git;
+
+        public Initializer(AbstractBuild<?, ?> build) {
+            this.build = build;
+        }
+
+        boolean isFailed() {
+            return failed;
+        }
+
+        public Git getGit() {
+            return git;
+        }
+
+        public Initializer invoke() throws IOException {
+            File gitFolder = new File(build.getProject().getRootDir(), "QualityTrends");
+            if (!gitFolder.exists() && !gitFolder.isDirectory()) {
+                gitFolder.mkdir();
+            }
+            FileRepositoryBuilder builder = new FileRepositoryBuilder();
+            FileRepository repository = builder
+                    .setWorkTree(gitFolder)
+                    .findGitDir()
+                    .build();
+            git = new Git(repository);
+            if (!(new File(gitFolder, ".git").isDirectory())) {
+                info("QualityTrends was not initialized yet. Initializing...");
+                git = Git.init().setDirectory(gitFolder).call();
+                File f = new File(build.getProject().getRootDir(), "QualityTrends/.buildNumber");
+                Files.write("0", f, Charset.defaultCharset());
+                try {
+                    git.add().addFilepattern(".").call();
+                    git.commit().setMessage("0").call();
+                } catch (GitAPIException e) {
+                    error(e.getMessage());
+                    e.printStackTrace();
+                    failed = true;
+                    return this;
+                }
+                info("Done");
+            }
+
+            try {
+                git.checkout().setName("master").call();
+            } catch (GitAPIException e) {
+                error(e.getMessage());
+                e.printStackTrace();
+                failed = true;
+                return this;
+            }
+            failed = false;
+            return this;
+        }
+    }
 }
