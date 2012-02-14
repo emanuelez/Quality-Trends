@@ -35,6 +35,8 @@ public class QualityTrends extends Recorder implements Serializable {
     private Set<Parser> parsers;
     private Future future;
     private BuildStorageManager storage;
+    private transient PrintStream logger;
+    
 
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
@@ -47,10 +49,10 @@ public class QualityTrends extends Recorder implements Serializable {
 
     @Override
     public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
-        System.out.println("Prebuild Started!");
+        logger = listener.getLogger();
+        info("Prebuild Started!");
         // Guice stuff
         Injector injector = Guice.createInjector(new QualityTrendsModule());
-        System.out.println("Prebuild Middle!");
         try {
             BuildStorageManagerFactory buildStorageManagerFactory = injector.getInstance(BuildStorageManagerFactory.class);
             storage = buildStorageManagerFactory.create(build);
@@ -61,20 +63,20 @@ public class QualityTrends extends Recorder implements Serializable {
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         future = executorService.submit(new QualityTrendsRunnable(build, storage));
-        System.out.println("Prebuild Done!");
+        info("Prebuild Done!");
         return true;
     }
 
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
-        final PrintStream logger = listener.getLogger();
+        logger = listener.getLogger();
         
-        logger.println("[QualityTrends] Waiting for the entries to be stored...");
+        info("Waiting for the entries to be stored...");
         while(!future.isDone()) {
             Thread.sleep(1000);
         }
-        logger.println("[QualityTrends] DONE.");
+        info("DONE.");
 
         // Print info about the entries found
         if (!recapEntries(logger)) return false;
@@ -83,9 +85,9 @@ public class QualityTrends extends Recorder implements Serializable {
         Set<String> allFileNames;
         try {
             allFileNames = storage.getFileNames();
-            logger.println("[QualityTrends] " + allFileNames.size() + " paths found");
+            info(allFileNames.size() + " paths found");
         } catch (QualityTrendsException e) {
-            logger.println("[QualityTrends] [ERROR] Could not retrieve the file names from the DB");
+            error("Could not retrieve the file names from the DB");
             e.printStackTrace();
             return false;
         }
@@ -96,11 +98,11 @@ public class QualityTrends extends Recorder implements Serializable {
                 Predicates.not(
                     Predicates.contains(
                         Pattern.compile("^([a-zA-Z]:)?/.*"))));
-        logger.println("[QualityTrends] " + relativePaths.size() + " relative paths were found");
+        info(relativePaths.size() + " relative paths were found");
 
         // Find the absolute paths
         Map<String,String> absolutePaths = build.getWorkspace().act(new TreeTraversalFileCallable(Sets.newHashSet(relativePaths), 500));
-        logger.println("[QualityTrends] " + absolutePaths.size() + " absolute paths were found after traversing the work area");
+        info(absolutePaths.size() + " absolute paths were found after traversing the work area");
 
         return true;
     }
@@ -110,11 +112,11 @@ public class QualityTrends extends Recorder implements Serializable {
         try {
             entryNumber = storage.getEntryNumberForBuild();
         } catch (QualityTrendsException e) {
-            logger.println("[QualityTrends] [ERROR] Could not get the number of entries for this build from the DB");
+            error("Could not get the number of entries for this build from the DB");
             e.printStackTrace();
             return false;
         }
-        logger.println(MessageFormat.format("[QualityTrends] {0} entries were found.", entryNumber));
+        info(MessageFormat.format("{0} entries were found.", entryNumber));
 
         for (Parser parser : parsers) {
             try {
@@ -124,7 +126,7 @@ public class QualityTrends extends Recorder implements Serializable {
                 e.printStackTrace();
                 return false;
             }
-            logger.println(MessageFormat.format("[QualityTrends] {0} entries for the {1} parser", entryNumber, parser.getName()));
+            info(MessageFormat.format("{0} entries for the {1} parser", entryNumber, parser.getName()));
         }
         return true;
     }
@@ -137,8 +139,22 @@ public class QualityTrends extends Recorder implements Serializable {
     public Iterable<Parser> getParsers() {
         return parsers;
     }
+    
+    private void log(String s) {
+        logger.println("[QualityTrends] " + s);
+    }
+    
+    private void info(String s) {
+        log("[INFO] " + s);
+    }
 
+    private void warning(String s) {
+        log("[WARNING] " + s);
+    }
 
+    private void error(String s) {
+        log("[ERROR] " + s);
+    }
 
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
