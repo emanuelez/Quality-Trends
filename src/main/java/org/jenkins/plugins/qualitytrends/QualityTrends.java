@@ -1,6 +1,5 @@
 package org.jenkins.plugins.qualitytrends;
 
-import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import hudson.Extension;
@@ -91,7 +90,7 @@ public class QualityTrends extends Recorder implements Serializable {
         }
 
         // Find the absolute paths
-        Map<String,String> absolutePaths = build.getWorkspace().act(new TreeTraversalFileCallable(Sets.newHashSet(allFileNames), 500));
+        Map<String,String> absolutePaths = build.getWorkspace().act(new TreeTraversalFileCallable(allFileNames, 500));
         info(absolutePaths.size() + " absolute paths were found after traversing the work area");
 
         return true;

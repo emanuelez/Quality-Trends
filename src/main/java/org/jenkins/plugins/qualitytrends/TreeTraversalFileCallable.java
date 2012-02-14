@@ -10,7 +10,10 @@ import hudson.remoting.VirtualChannel;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Queue;
+import java.util.Set;
 
 /**
  * A FilePath.FileCallable that, given a set of relative paths returns
@@ -23,16 +26,16 @@ public class TreeTraversalFileCallable implements FilePath.FileCallable<Map<Stri
 
     private static final long serialVersionUID = 7836272874278244L;
 
-    private HashSet<String> fileNames;
+    private Set<String> fileNames;
     private int maxLevel;
-    private HashMap<String, String> result = Maps.newHashMap();
+    private Map<String, String> result = Maps.newHashMap();
 
     /**
      * Constructor
      * @param fileNames the set of relatives file names.
      * @param maxLevel maximum depth for the tree traversal
      */
-    public TreeTraversalFileCallable(HashSet<String> fileNames, int maxLevel) {
+    public TreeTraversalFileCallable(Set<String> fileNames, int maxLevel) {
         this.fileNames = fileNames;
         this.maxLevel = maxLevel;
     }

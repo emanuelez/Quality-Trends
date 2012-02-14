@@ -75,7 +75,7 @@ public class TreeTraversalFileCallableTest extends TestCase {
         relative.add("leaf1");
         relative.add("child2/childa/leaf2");
 
-        TreeTraversalFileCallable callable = new TreeTraversalFileCallable(Sets.newHashSet(relative), 500);
+        TreeTraversalFileCallable callable = new TreeTraversalFileCallable(relative, 500);
         Map<String,String> result = callable.invoke(root, mock(VirtualChannel.class));
 
         assertTrue("/absolute/root/leaf1".equals(result.get("leaf1")));
