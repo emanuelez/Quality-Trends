@@ -1,22 +1,32 @@
 package org.jenkins.plugins.qualitytrends;
 
+import com.google.common.base.Preconditions;
+import com.google.common.io.Files;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
+import hudson.remoting.VirtualChannel;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.storage.file.FileRepository;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.jenkins.plugins.qualitytrends.model.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.Set;
@@ -69,6 +79,40 @@ public class QualityTrends extends Recorder implements Serializable {
             throws InterruptedException, IOException {
         logger = listener.getLogger();
         
+        File gitFolder = new File(build.getProject().getRootDir(), "QualityTrends");
+        if (!gitFolder.exists() && !gitFolder.isDirectory()) {
+            gitFolder.mkdir();
+        }
+        FileRepositoryBuilder builder = new FileRepositoryBuilder();
+        FileRepository repository = builder
+                .setWorkTree(gitFolder)
+                .findGitDir()
+                .build();
+        Git git = new Git(repository);
+        if (!(new File(gitFolder, ".git").isDirectory())) {
+            info("QualityTrends was not initialized yet. Initializing...");
+            git = Git.init().setDirectory(gitFolder).call();
+            File f = new File(build.getProject().getRootDir(), "QualityTrends/.buildNumber");
+            Files.write("0", f, Charset.defaultCharset());
+            try {
+                git.add().addFilepattern(".").call();
+                git.commit().setMessage("0").call();
+            } catch (GitAPIException e) {
+                error(e.getMessage());
+                e.printStackTrace();
+                return false;
+            }
+            info("Done.");
+        }
+
+        try {
+            git.checkout().setName("master").call();
+        } catch (GitAPIException e) {
+            error(e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+
         info("Waiting for the entries to be stored...");
         while(!future.isDone()) {
             Thread.sleep(1000);
@@ -92,6 +136,38 @@ public class QualityTrends extends Recorder implements Serializable {
         // Find the absolute paths
         Map<String,String> absolutePaths = build.getWorkspace().act(new TreeTraversalFileCallable(allFileNames, 500));
         info(absolutePaths.size() + " absolute paths were found after traversing the work area");
+
+        // Copy the files to the Master
+        VirtualChannel channel = build.getBuiltOn().getChannel();
+        String workspacePath = build.getWorkspace().getRemote();
+        for (String absolutePath : absolutePaths.values()) {
+            // Get the relative path
+            Preconditions.checkState(absolutePath.startsWith(workspacePath));
+            String relativePath = absolutePath.substring(workspacePath.length());
+            
+            FilePath source = new FilePath(channel, absolutePath);
+
+            File localPath = new File(build.getProject().getRootDir(), "QualityTrends" + relativePath);
+            FilePath destination = new FilePath(localPath);
+            destination.copyFrom(source);
+        }
+        File buildNumberFile = new File(build.getProject().getRootDir(), "QualityTrends" + "/.buildNumber");
+        Files.write(Integer.toString(build.getNumber()), buildNumberFile, Charset.defaultCharset());
+        try {
+            git.add().addFilepattern(".").call();
+        } catch (GitAPIException e) {
+            error(e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+        try {
+            git.commit().setMessage(Integer.toString(build.getNumber())).call();
+        } catch (GitAPIException e) {
+            error(e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+        info("Files copied to Master");
 
         return true;
     }
