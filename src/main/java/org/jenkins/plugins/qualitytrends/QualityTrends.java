@@ -1,6 +1,5 @@
 package org.jenkins.plugins.qualitytrends;
 
-import com.google.common.base.Predicates;
 import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -25,7 +24,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.regex.Pattern;
 
 /**
  * @author Emanuele Zattin
@@ -91,17 +89,9 @@ public class QualityTrends extends Recorder implements Serializable {
             e.printStackTrace();
             return false;
         }
-        
-        // Filter out the absolute paths
-        Set<String> relativePaths = Sets.filter(
-                allFileNames,
-                Predicates.not(
-                    Predicates.contains(
-                        Pattern.compile("^([a-zA-Z]:)?/.*"))));
-        info(relativePaths.size() + " relative paths were found");
 
         // Find the absolute paths
-        Map<String,String> absolutePaths = build.getWorkspace().act(new TreeTraversalFileCallable(Sets.newHashSet(relativePaths), 500));
+        Map<String,String> absolutePaths = build.getWorkspace().act(new TreeTraversalFileCallable(Sets.newHashSet(allFileNames), 500));
         info(absolutePaths.size() + " absolute paths were found after traversing the work area");
 
         return true;
