@@ -1,0 +1,1 @@
+SELECT COUNT(DISTINCT build_number) FROM entries WHERE build_number < ?;

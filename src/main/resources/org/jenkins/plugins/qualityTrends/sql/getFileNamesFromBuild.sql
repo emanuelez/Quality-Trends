@@ -1,1 +1,1 @@
-SELECT file_name FROM entries WHERE build_id = ?;
+SELECT file_name FROM entries WHERE build_number = ?;

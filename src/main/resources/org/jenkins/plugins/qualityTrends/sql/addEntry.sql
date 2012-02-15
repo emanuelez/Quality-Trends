@@ -1,5 +1,5 @@
 INSERT INTO entries SET
-    build_id = ?,
+    build_number = ?,
     file_name = ?,
     line_number = ?,
     parser = ?,

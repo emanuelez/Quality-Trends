@@ -125,7 +125,8 @@ public class RemotingTest extends HudsonTestCase {
             }
         }
     }
-    
+
+
     public static class MyParser extends Parser {
 
         public String getName() {

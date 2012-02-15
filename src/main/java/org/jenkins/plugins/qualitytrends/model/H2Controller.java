@@ -5,27 +5,29 @@ import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import com.google.inject.internal.Maps;
 import com.google.inject.internal.Nullable;
 
 import java.io.IOException;
 import java.net.URL;
 import java.sql.*;
+import java.util.Map;
 import java.util.Set;
 
 public class H2Controller implements DbController {
 
     private Connection connection;
-    private PreparedStatement addBuild;
-    private PreparedStatement associateCommitToBuild;
     private PreparedStatement addEntry;
-    private PreparedStatement associateFileSha1ToEntry;
-    private PreparedStatement addWarning;
+    private PreparedStatement associateFileSha1ToEntryForBuildAndFileName;
     private PreparedStatement associateWarningToEntry;
     private PreparedStatement tearDown;
-    private PreparedStatement getBuildFromBuildNumber;
+    private PreparedStatement getEntriesForBuildFileSha1AndLineNumber;
     private PreparedStatement getEntryNumberFromBuild;
     private PreparedStatement getEntryNumberFromBuildAndParser;
     private PreparedStatement getFileNamesFromBuild;
+    private PreparedStatement countBuildsBefore;
+    private PreparedStatement getFileSha1AndLineNumberForBuild;
+    private PreparedStatement getNewFileSha1AndLineNumberForBuild;
 
     @Inject
     public H2Controller(@Assisted String path) {
@@ -56,26 +58,13 @@ public class H2Controller implements DbController {
     }
 
     private void setupPreparedStatements() throws IOException, SQLException {
-
-        URL url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/addBuild.sql");
+        URL url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/addEntry.sql");
         String sql = Resources.toString(url, Charsets.ISO_8859_1);
-        addBuild = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-
-        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/associateCommitToBuild.sql");
-        sql = Resources.toString(url, Charsets.ISO_8859_1);
-        associateCommitToBuild = connection.prepareStatement(sql);
-
-        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/addEntry.sql");
-        sql = Resources.toString(url, Charsets.ISO_8859_1);
         addEntry = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/associateFileSha1ToEntry.sql");
+        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/associateFileSha1ToEntryForBuildAndFileName.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
-        associateFileSha1ToEntry = connection.prepareStatement(sql);
-
-        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/addWarning.sql");
-        sql = Resources.toString(url, Charsets.ISO_8859_1);
-        addWarning = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        associateFileSha1ToEntryForBuildAndFileName = connection.prepareStatement(sql);
 
         url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/associateWarningToEntry.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
@@ -85,10 +74,6 @@ public class H2Controller implements DbController {
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         tearDown = connection.prepareStatement(sql);
 
-        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getBuildFromBuildNumber.sql");
-        sql = Resources.toString(url, Charsets.ISO_8859_1);
-        getBuildFromBuildNumber = connection.prepareStatement(sql);
-
         url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getEntryNumberFromBuild.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         getEntryNumberFromBuild = connection.prepareStatement(sql);
@@ -96,25 +81,39 @@ public class H2Controller implements DbController {
         url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getEntryNumberFromBuildAndParser.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         getEntryNumberFromBuildAndParser = connection.prepareStatement(sql);
-        
+
         url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getFileNamesFromBuild.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         getFileNamesFromBuild = connection.prepareStatement(sql);
+
+        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/countBuildsBefore.sql");
+        sql = Resources.toString(url, Charsets.ISO_8859_1);
+        countBuildsBefore = connection.prepareStatement(sql);
+
+        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getFileSha1AndLineNumberForBuild.sql");
+        sql = Resources.toString(url, Charsets.ISO_8859_1);
+        getFileSha1AndLineNumberForBuild = connection.prepareStatement(sql);
+
+        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getNewFileSha1AndLineNumberForBuild.sql");
+        sql = Resources.toString(url, Charsets.ISO_8859_1);
+        getNewFileSha1AndLineNumberForBuild = connection.prepareStatement(sql);
+
+        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getEntriesForBuildFileSha1AndLineNumber.sql");
+        sql = Resources.toString(url, Charsets.ISO_8859_1);
+        getEntriesForBuildFileSha1AndLineNumber = connection.prepareStatement(sql);
     }
 
     private boolean isSchemaOK() throws SQLException {
         DatabaseMetaData metaData = connection.getMetaData();
         ResultSet tables = metaData.getTables(null, null, "%", null);
-        int tablesToCheck = 3;
+        boolean isOk = false;
         while (tables.next()) {
             String table_name = tables.getString("TABLE_NAME");
-            if ("BUILDS".equals(table_name)
-                    ||"ENTRIES".equals(table_name)
-                    ||"WARNINGS".equals(table_name)) {
-                tablesToCheck--;
+            if ("ENTRIES".equals(table_name)) {
+                isOk = true;
             }
         }
-        return tablesToCheck==0;
+        return isOk;
     }
 
     private void createSchema() throws IOException, SQLException {
@@ -124,35 +123,21 @@ public class H2Controller implements DbController {
         createSchema.execute();
     }
 
-    public int addBuild(int build_number) throws SQLException {
-        addBuild.setInt(1, build_number);
-        addBuild.executeUpdate();
-        ResultSet generatedKeys = addBuild.getGeneratedKeys();
-        generatedKeys.next();
-        return generatedKeys.getInt(1);
-    }
-
-    public void associateCommitToBuild(int build_id, String commit_sha1) throws SQLException {
-        associateCommitToBuild.setString(1, commit_sha1);
-        associateCommitToBuild.setInt(2, build_id);
-        associateCommitToBuild.executeUpdate();
-    }
-
     public int addEntry(
-            int build_id,
-            String file_name,
-            int line_number,
+            int buildId,
+            String fileName,
+            int lineNumber,
             String parser,
             String severity,
-            @Nullable String issue_id,
+            @Nullable String issueId,
             String message,
             @Nullable String link) throws SQLException {
-        addEntry.setInt(1, build_id);
-        addEntry.setString(2, file_name);
-        addEntry.setInt(3, line_number);
+        addEntry.setInt(1, buildId);
+        addEntry.setString(2, fileName);
+        addEntry.setInt(3, lineNumber);
         addEntry.setString(4, parser);
         addEntry.setString(5, severity);
-        addEntry.setString(6, issue_id);
+        addEntry.setString(6, issueId);
         addEntry.setString(7, message);
         addEntry.setString(8, link);
         addEntry.executeUpdate();
@@ -161,23 +146,75 @@ public class H2Controller implements DbController {
         return generatedKeys.getInt(1);
     }
 
-    public void associateFileSha1ToEntry(int entry_id, String file_sha1) throws SQLException {
-        associateFileSha1ToEntry.setString(1, file_sha1);
-        associateFileSha1ToEntry.setInt(2, entry_id);
-        associateFileSha1ToEntry.executeUpdate();
+    public void associateFileSha1ToEntryForBuildAndFileName(int buildNumber, String fileName, String fileSha1) throws SQLException {
+        associateFileSha1ToEntryForBuildAndFileName.setString(1, fileSha1);
+        associateFileSha1ToEntryForBuildAndFileName.setInt(2, buildNumber);
+        associateFileSha1ToEntryForBuildAndFileName.setString(3, fileName);
+        associateFileSha1ToEntryForBuildAndFileName.executeUpdate();
     }
 
-    public int addWarning(String warning_sha1) throws SQLException {
-        addWarning.setString(1, warning_sha1);
-        addWarning.executeUpdate();
-        ResultSet generatedKeys = addWarning.getGeneratedKeys();
-        generatedKeys.next();
-        return generatedKeys.getInt(1);
+    public int countBuildsBefore(int buildNumber) throws SQLException {
+        countBuildsBefore.setInt(1, buildNumber);
+        countBuildsBefore.executeQuery();
+        ResultSet resultSet = countBuildsBefore.getResultSet();
+        resultSet.next();
+        return resultSet.getInt(1);
     }
 
-    public void associateWarningToEntry(int warning_id, int entry_id) throws SQLException {
-        associateWarningToEntry.setInt(1, warning_id);
-        associateWarningToEntry.setInt(2, entry_id);
+    public Map<String, Integer> getFileSha1AndLineNumberForBuild(int buildNumber) throws SQLException {
+        getFileSha1AndLineNumberForBuild.setInt(1, buildNumber);
+        getFileSha1AndLineNumberForBuild.executeQuery();
+        ResultSet resultSet = getFileSha1AndLineNumberForBuild.getResultSet();
+        Map<String, Integer> result = Maps.newHashMap();
+        while (resultSet.next()) {
+            result.put(
+                    resultSet.getString("file_sha1"),
+                    resultSet.getInt("line_number"));
+        }
+        return result;
+    }
+
+    public Map<String, Integer> getNewFileSha1AndLineNumberForBuild(int buildNumber) throws SQLException {
+        getNewFileSha1AndLineNumberForBuild.setInt(1, buildNumber);
+        getNewFileSha1AndLineNumberForBuild.setInt(2, buildNumber);
+        getNewFileSha1AndLineNumberForBuild.executeQuery();
+        ResultSet resultSet = getNewFileSha1AndLineNumberForBuild.getResultSet();
+        Map<String, Integer> result = Maps.newHashMap();
+        while (resultSet.next()) {
+            result.put(
+                    resultSet.getString("file_sha1"),
+                    resultSet.getInt("line_number"));
+        }
+        return result;
+    }
+
+    public Set<Entry> getEntriesForBuildFileSha1AndLineNumber(int buildNumber, String fileSha1, int lineNumber) throws SQLException {
+        getEntriesForBuildFileSha1AndLineNumber.setInt(1, buildNumber);
+        getEntriesForBuildFileSha1AndLineNumber.setString(2, fileSha1);
+        getEntriesForBuildFileSha1AndLineNumber.setInt(3, lineNumber);
+        ResultSet resultSet = getEntriesForBuildFileSha1AndLineNumber.executeQuery();
+        Set<Entry> result = Sets.newHashSet();
+        while (resultSet.next()) {
+            Entry entry = new EntryBuilder()
+                    .setBuildNumber(resultSet.getInt("build_number"))
+                    .setEntryId(resultSet.getInt("build_id"))
+                    .setFileName(resultSet.getString("file_name"))
+                    .setFileSha1(resultSet.getString("file_sha1"))
+                    .setIssueId(resultSet.getString("issue_id"))
+                    .setLineNumber(resultSet.getInt("line_number"))
+                    .setMessage(resultSet.getString("message"))
+                    .setParser(resultSet.getString("parser"))
+                    .setSeverity(resultSet.getString("severity"))
+                    .setWarningSha1(resultSet.getString("warning_sha1"))
+                    .createEntry();
+            result.add(entry);
+        }
+        return result;
+    }
+
+    public void associateWarningToEntry(String warningSha1, int entryId) throws SQLException {
+        associateWarningToEntry.setString(1, warningSha1);
+        associateWarningToEntry.setInt(2, entryId);
         associateWarningToEntry.executeUpdate();
     }
 
@@ -185,42 +222,21 @@ public class H2Controller implements DbController {
         tearDown.execute();
     }
 
-    public Build getBuildFromBuildNumber(int build_number) throws SQLException {
-        getBuildFromBuildNumber.setInt(1, build_number);
-        getBuildFromBuildNumber.execute();
-        ResultSet resultSet = getBuildFromBuildNumber.getResultSet();
-        if (resultSet.next()) {
-            Build build = new Build(
-                    resultSet.getInt("build_id"), 
-                    resultSet.getInt("build_number"),
-                    resultSet.getString("commit_sha1"));
-            return build;
-        } else {
-            return null;
-        }
-    }
-
-    public int getEntryNumberFromBuild(int build_id) throws SQLException {
-        getEntryNumberFromBuild.setInt(1, build_id);
+    public int getEntryNumberFromBuild(int buildNumber) throws SQLException {
+        getEntryNumberFromBuild.setInt(1, buildNumber);
         getEntryNumberFromBuild.execute();
         ResultSet resultSet = getEntryNumberFromBuild.getResultSet();
-        if (resultSet.next()) {
-            return resultSet.getInt(1);
-        } else {
-            return 0;
-        }
+        resultSet.next();
+        return resultSet.getInt(1);
     }
 
-    public int getEntryNumberFromBuildAndParser(int build_id, String parser) throws SQLException {
-        getEntryNumberFromBuildAndParser.setInt(1, build_id);
+    public int getEntryNumberFromBuildAndParser(int buildNumber, String parser) throws SQLException {
+        getEntryNumberFromBuildAndParser.setInt(1, buildNumber);
         getEntryNumberFromBuildAndParser.setString(2, parser);
         getEntryNumberFromBuildAndParser.execute();
         ResultSet resultSet = getEntryNumberFromBuildAndParser.getResultSet();
-        if (resultSet.next()) {
-            return resultSet.getInt(1);
-        } else {
-            return 0;
-        }
+        resultSet.next();
+        return resultSet.getInt(1);
     }
 
     public Set<String> getFileNames(int build_id) throws SQLException {
@@ -232,14 +248,5 @@ public class H2Controller implements DbController {
             fileNames.add(resultSet.getString(1));
         }
         return fileNames;
-    }
-
-    public int addBuildIfNew(int build_number) throws SQLException {
-        Build build = getBuildFromBuildNumber(build_number);
-        if (build == null) {
-            return addBuild(build_number);
-        } else {
-            return build.getBuild_id();
-        }
     }
 }

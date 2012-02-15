@@ -1,9 +1,11 @@
 package org.jenkins.plugins.qualitytrends;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.BiMap;
 import com.google.common.io.Files;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.internal.Maps;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -16,10 +18,15 @@ import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.gitective.core.BlobUtils;
+import org.gitective.core.CommitUtils;
 import org.jenkins.plugins.qualitytrends.model.*;
+import org.jenkins.plugins.qualitytrends.util.Sha1Utils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.File;
@@ -27,6 +34,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.Set;
@@ -43,7 +51,7 @@ public class QualityTrends extends Recorder implements Serializable {
     private Future future;
     private BuildStorageManager storage;
     private transient PrintStream logger;
-    
+
 
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
@@ -84,91 +92,110 @@ public class QualityTrends extends Recorder implements Serializable {
         Git git = initializer.getGit();
 
         info("Waiting for the entries to be stored...");
-        while(!future.isDone()) {
+        while (!future.isDone()) {
             Thread.sleep(1000);
         }
         info("Done");
 
-        // Print info about the entries found
-        if (!recapEntries(logger)) return false;
-
-        // Find the files names associated to the entries
-        Set<String> allFileNames;
         try {
-            allFileNames = storage.getFileNames();
+            // Print info about the entries found
+            recapEntries();
+
+            // Find the files names associated to the entries
+            Set<String> allFileNames = storage.getFileNames();
             info(allFileNames.size() + " paths found");
-        } catch (QualityTrendsException e) {
-            error("Could not retrieve the file names from the DB");
+
+            // Find the absolute paths
+            BiMap<String, String> absolutePaths = build.getWorkspace().act(new TreeTraversalFileCallable(allFileNames, 500));
+            info(absolutePaths.size() + " absolute paths were found after traversing the work area");
+
+            // Copy the files to the Master
+            copyFilesToMaster(build, git, absolutePaths);
+
+            // Generate the warnings
+            generateWarnings(git);
+        } catch (Exception e) {
+            if (e instanceof RuntimeException) {
+                // Be a good boy and let runtime exceptions go their way
+                return true;
+            }
+            error(e.getMessage());
             e.printStackTrace();
             return false;
         }
 
-        // Find the absolute paths
-        Map<String,String> absolutePaths = build.getWorkspace().act(new TreeTraversalFileCallable(allFileNames, 500));
-        info(absolutePaths.size() + " absolute paths were found after traversing the work area");
-
-        // Copy the files to the Master
-        if (!copyFilesToMaster(build, git, absolutePaths)) return false;
 
         return true;
     }
 
-    private boolean copyFilesToMaster(AbstractBuild<?, ?> build, Git git, Map<String, String> absolutePaths) throws IOException, InterruptedException {
+    private boolean generateWarnings(Git git) throws NoSuchAlgorithmException, IOException, QualityTrendsException {
+        // Find the new (fileSha1,lineNumber) couples
+        Map<String, Integer> couples = storage.getNewFileSha1AndLineNumber();
+
+        // Compute the contextSha1 for the new (fileSha1,lineNumber) couples
+        Map<Map.Entry<String, Integer>, String> contextSha1 = Maps.newHashMap();
+        for (Map.Entry<String, Integer> couple : couples.entrySet()) {
+            String sha1 = Sha1Utils.generateContextSha1(
+                    BlobUtils.getContent(git.getRepository(), git.getRepository().resolve(couple.getKey())),
+                    couple.getValue());
+            contextSha1.put(couple, sha1);
+        }
+
+        // Compute the warningSha1 for each entry relative to each new (fileSha1,lineNumber) couple
+        for (Map.Entry<Map.Entry<String, Integer>, String> contextEntry : contextSha1.entrySet()) {
+            // Find all entries associated to the couple
+            Set<Entry> entries = storage.findEntriesForFileSha1AndLineNumber(contextEntry.getKey().getKey(), contextEntry.getKey().getValue());
+            for (Entry entry : entries) {
+                String warningSha1 = Sha1Utils.generateWarningSha1(contextEntry.getValue(), entry.getParser(), entry.getSeverity().toString(), entry.getMessage());
+                storage.addWarning(warningSha1, entry);
+            }
+        }
+        return true;
+    }
+
+    private void copyFilesToMaster(AbstractBuild<?, ?> build, Git git, BiMap<String, String> absolutePaths) throws IOException, InterruptedException, NoFilepatternException, NoHeadException, NoMessageException, ConcurrentRefUpdateException, WrongRepositoryStateException, QualityTrendsException {
         VirtualChannel channel = build.getBuiltOn().getChannel();
         String workspacePath = build.getWorkspace().getRemote();
         for (String absolutePath : absolutePaths.values()) {
             // Get the relative path
             Preconditions.checkState(absolutePath.startsWith(workspacePath));
             String relativePath = absolutePath.substring(workspacePath.length());
-
+            // Copy from...
             FilePath source = new FilePath(channel, absolutePath);
-
+            // Copy to...
             File localPath = new File(build.getProject().getRootDir(), "QualityTrends" + relativePath);
             FilePath destination = new FilePath(localPath);
+            // Do it!
             destination.copyFrom(source);
         }
+        // Update the buildNumber file
         File buildNumberFile = new File(build.getProject().getRootDir(), "QualityTrends" + "/.buildNumber");
         Files.write(Integer.toString(build.getNumber()), buildNumberFile, Charset.defaultCharset());
-        try {
-            git.add().addFilepattern(".").call();
-        } catch (GitAPIException e) {
-            error(e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
-        try {
-            git.commit().setMessage(Integer.toString(build.getNumber())).call();
-        } catch (GitAPIException e) {
-            error(e.getMessage());
-            e.printStackTrace();
-            return false;
+        // Add all the files
+        git.add().addFilepattern(".").call();
+        // Commit
+        git.commit().setMessage(Integer.toString(build.getNumber())).call();
+        // Get the new commit
+        RevCommit currentCommit = CommitUtils.getHead(git.getRepository());
+
+        for (Map.Entry<String, String> entry : absolutePaths.entrySet()) {
+            String relativePath = entry.getValue().substring(workspacePath.length() + 1);
+            ObjectId objectId = BlobUtils.getId(git.getRepository(), currentCommit.getId(), relativePath);
+            if (objectId != null) {
+                storage.updateEntryWithFileSha1(entry.getKey(), objectId.toString());
+            }
         }
         info("Files copied to Master");
-        return true;
     }
 
-    private boolean recapEntries(PrintStream logger) {
-        int entryNumber;
-        try {
-            entryNumber = storage.getEntryNumberForBuild();
-        } catch (QualityTrendsException e) {
-            error("Could not get the number of entries for this build from the DB");
-            e.printStackTrace();
-            return false;
-        }
+    private void recapEntries() throws QualityTrendsException {
+        int entryNumber = storage.getEntryNumberForBuild();
         info(MessageFormat.format("{0} entries were found.", entryNumber));
 
         for (Parser parser : parsers) {
-            try {
-                entryNumber = storage.getEntryNumberForBuildAndParser(parser);
-            } catch (QualityTrendsException e) {
-                logger.println("[QualityTrends] [ERROR] Could not get the number of entries for this build and this parser from the DB");
-                e.printStackTrace();
-                return false;
-            }
+            entryNumber = storage.getEntryNumberForBuildAndParser(parser);
             info(MessageFormat.format("{0} entries for the {1} parser", entryNumber, parser.getName()));
         }
-        return true;
     }
 
     @Override
@@ -179,11 +206,11 @@ public class QualityTrends extends Recorder implements Serializable {
     public Iterable<Parser> getParsers() {
         return parsers;
     }
-    
+
     private void log(String s) {
         logger.println("[QualityTrends] " + s);
     }
-    
+
     private void info(String s) {
         log("[INFO] " + s);
     }

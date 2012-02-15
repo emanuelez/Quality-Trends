@@ -1,16 +1,16 @@
 package org.jenkins.plugins.qualitytrends;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import hudson.FilePath;
 import hudson.remoting.VirtualChannel;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
@@ -22,13 +22,13 @@ import java.util.Set;
  * @author Emanuele Zattin
  */
 
-public class TreeTraversalFileCallable implements FilePath.FileCallable<Map<String, String>>, Serializable {
+public class TreeTraversalFileCallable implements FilePath.FileCallable<BiMap<String, String>>, Serializable {
 
     private static final long serialVersionUID = 7836272874278244L;
 
     private Set<String> fileNames;
     private int maxLevel;
-    private Map<String, String> result = Maps.newHashMap();
+    private BiMap<String, String> result = HashBiMap.create();
 
     /**
      * Constructor
@@ -50,7 +50,7 @@ public class TreeTraversalFileCallable implements FilePath.FileCallable<Map<Stri
      * @throws IOException
      * @throws InterruptedException
      */
-    public Map<String, String> invoke(File root, VirtualChannel channel) throws IOException, InterruptedException {
+    public BiMap<String, String> invoke(File root, VirtualChannel channel) throws IOException, InterruptedException {
         
         int level = 0;
         File nextLevelJump = root;

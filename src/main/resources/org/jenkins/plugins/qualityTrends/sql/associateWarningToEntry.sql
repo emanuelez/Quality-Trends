@@ -1,1 +1,1 @@
-UPDATE entries SET warning_id = ? WHERE entry_id = ?;
+UPDATE entries SET warning_sha1 = ? WHERE entry_id = ?;

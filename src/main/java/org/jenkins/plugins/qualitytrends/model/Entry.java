@@ -5,44 +5,44 @@ package org.jenkins.plugins.qualitytrends.model;
  */
 
 public class Entry {
-    private int entry_id;
-    private int build_id;
-    private String file_name;
-    private int line_number;
+    private int entryId;
+    private int buildNumber;
+    private String fileName;
+    private int lineNumber;
     private String parser;
     private String severity;
-    private String issue_id;
+    private String issueId;
     private String message;
-    private String file_sha1;
-    private String warning_id;
+    private String fileSha1;
+    private String warningSha1;
 
-    public Entry(int entry_id, int build_id, String file_name, int line_number, String parser, String severity, String issue_id, String message, String file_sha1, String warning_id) {
-        this.entry_id = entry_id;
-        this.build_id = build_id;
-        this.file_name = file_name;
-        this.line_number = line_number;
+    public Entry(int entryId, int buildNumber, String fileName, int lineNumber, String parser, String severity, String issueId, String message, String fileSha1, String warningSha1) {
+        this.entryId = entryId;
+        this.buildNumber = buildNumber;
+        this.fileName = fileName;
+        this.lineNumber = lineNumber;
         this.parser = parser;
         this.severity = severity;
-        this.issue_id = issue_id;
+        this.issueId = issueId;
         this.message = message;
-        this.file_sha1 = file_sha1;
-        this.warning_id = warning_id;
+        this.fileSha1 = fileSha1;
+        this.warningSha1 = warningSha1;
     }
 
-    public int getEntry_id() {
-        return entry_id;
+    public int getEntryId() {
+        return entryId;
     }
 
-    public int getBuild_id() {
-        return build_id;
+    public int getBuildNumber() {
+        return buildNumber;
     }
 
-    public String getFile_name() {
-        return file_name;
+    public String getFileName() {
+        return fileName;
     }
 
-    public int getLine_number() {
-        return line_number;
+    public int getLineNumber() {
+        return lineNumber;
     }
 
     public String getParser() {
@@ -53,19 +53,19 @@ public class Entry {
         return severity;
     }
 
-    public String getIssue_id() {
-        return issue_id;
+    public String getIssueId() {
+        return issueId;
     }
 
     public String getMessage() {
         return message;
     }
 
-    public String getFile_sha1() {
-        return file_sha1;
+    public String getFileSha1() {
+        return fileSha1;
     }
 
-    public String getWarning_id() {
-        return warning_id;
+    public String getWarningSha1() {
+        return warningSha1;
     }
 }

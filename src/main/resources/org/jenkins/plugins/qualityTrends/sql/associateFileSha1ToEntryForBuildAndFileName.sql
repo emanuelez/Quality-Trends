@@ -1,0 +1,1 @@
+UPDATE entries SET file_sha1 = ? WHERE build_number = ? AND file_name = ?;

@@ -1,1 +1,0 @@
-SELECT * FROM builds WHERE build_number = ?;

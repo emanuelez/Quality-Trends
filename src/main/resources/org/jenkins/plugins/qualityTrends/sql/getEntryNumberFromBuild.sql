@@ -1,1 +1,1 @@
-SELECT COUNT(*) FROM entries WHERE build_id = ?;
+SELECT COUNT(*) FROM entries WHERE build_number = ?;

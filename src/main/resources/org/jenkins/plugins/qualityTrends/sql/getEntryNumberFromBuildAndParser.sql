@@ -1,1 +1,1 @@
-SELECT COUNT(*) FROM entries WHERE build_id = ? and parser = ?;
+SELECT COUNT(*) FROM entries WHERE build_number = ? and parser = ?;
