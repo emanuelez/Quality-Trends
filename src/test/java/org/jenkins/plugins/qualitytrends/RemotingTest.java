@@ -26,7 +26,6 @@ import org.jvnet.hudson.test.TestBuilder;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -127,7 +126,7 @@ public class RemotingTest extends HudsonTestCase {
         }
     }
     
-    public static class MyParser implements Parser {
+    public static class MyParser extends Parser {
 
         public String getName() {
             return "MockParser";
