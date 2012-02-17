@@ -182,7 +182,7 @@ public class QualityTrends extends Recorder implements Serializable {
             String relativePath = entry.getValue().substring(workspacePath.length() + 1);
             ObjectId objectId = BlobUtils.getId(git.getRepository(), currentCommit.getId(), relativePath);
             if (objectId != null) {
-                storage.updateEntryWithFileSha1(entry.getKey(), objectId.toString());
+                storage.updateEntryWithFileSha1(entry.getKey(), ObjectId.toString(objectId));
             }
         }
         info("Files copied to Master");

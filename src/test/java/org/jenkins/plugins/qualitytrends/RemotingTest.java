@@ -10,10 +10,7 @@ import com.google.common.io.LineReader;
 import com.google.common.io.Resources;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
-import hudson.model.FreeStyleBuild;
-import hudson.model.FreeStyleProject;
+import hudson.model.*;
 import hudson.remoting.VirtualChannel;
 import hudson.slaves.DumbSlave;
 import org.jenkins.plugins.qualitytrends.model.Parser;
@@ -63,6 +60,8 @@ public class RemotingTest extends HudsonTestCase {
                 line = lineReader.readLine();
             }
 
+            assertTrue(build.getResult().isBetterOrEqualTo(Result.SUCCESS));
+
         } catch (InterruptedException e) {
             e.printStackTrace();
             fail();
@@ -82,8 +81,8 @@ public class RemotingTest extends HudsonTestCase {
         }
 
     }
-    
-    public static class MyTestBuilder extends TestBuilder{
+
+    public static class MyTestBuilder extends TestBuilder {
         @Override
         public boolean perform(AbstractBuild<?, ?> abstractBuild, Launcher launcher, BuildListener buildListener) throws InterruptedException, IOException {
             Iterable<String> fileAbsolutePaths = abstractBuild.getWorkspace().act(new TestFileCallable());
@@ -105,7 +104,7 @@ public class RemotingTest extends HudsonTestCase {
 
             return Joiner.on("|").join(s);
         }
-    }    
+    }
 
     public static class TestFileCallable implements FilePath.FileCallable<HashSet<String>> {
 
