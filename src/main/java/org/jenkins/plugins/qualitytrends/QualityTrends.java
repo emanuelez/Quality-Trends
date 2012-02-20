@@ -6,17 +6,20 @@ import com.google.common.io.Files;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.internal.Maps;
+import com.google.inject.internal.Sets;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
+import hudson.model.Descriptor;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
+import net.sf.json.JSONObject;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.ObjectId;
@@ -28,6 +31,7 @@ import org.gitective.core.CommitUtils;
 import org.jenkins.plugins.qualitytrends.model.*;
 import org.jenkins.plugins.qualitytrends.util.Sha1Utils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,7 +51,7 @@ import java.util.concurrent.Future;
  */
 public class QualityTrends extends Recorder implements Serializable {
 
-    private Set<Parser> parsers;
+    private Set<Parser> parsers = Sets.newHashSet();
     private Future future;
     private BuildStorageManager storage;
     private transient PrintStream logger;
@@ -203,8 +207,11 @@ public class QualityTrends extends Recorder implements Serializable {
         return true;
     }
 
-    public Iterable<Parser> getParsers() {
-        return parsers;
+    public Set<Parser> getParsers() {
+        if(parsers != null)
+            return parsers;
+        else
+            return Sets.newHashSet();
     }
 
     private void log(String s) {
@@ -236,6 +243,18 @@ public class QualityTrends extends Recorder implements Serializable {
             return true;
         }
 
+        @Override
+        public Publisher newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+            Set<Parser> parsers = Sets.newHashSet();
+
+            for (Parser parser : Parser.all()) {
+                if (formData.optBoolean(parser.getName())) {
+                    parsers.add(parser);
+                }
+            }
+
+            return new QualityTrends(parsers);
+        }
     }
 
     private class Initializer {
