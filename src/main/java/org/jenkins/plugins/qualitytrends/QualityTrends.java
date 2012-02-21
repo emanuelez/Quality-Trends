@@ -77,6 +77,7 @@ public class QualityTrends extends Recorder implements Serializable {
             storage = buildStorageManagerFactory.create(build);
         } catch (Exception e) {
             e.printStackTrace();
+            error("Could not create storage");
             return false;
         }
 

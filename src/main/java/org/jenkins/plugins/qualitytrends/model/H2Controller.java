@@ -32,7 +32,7 @@ public class H2Controller implements DbController {
     @Inject
     public H2Controller(@Assisted String path) {
         try {
-            Class.forName("org.hsqldb.jdbcDriver").newInstance();
+            Class.forName("org.h2.Driver").newInstance();
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
@@ -52,53 +52,55 @@ public class H2Controller implements DbController {
 
         } catch (SQLException e) {
             e.printStackTrace();
+            throw new IllegalArgumentException("Could not initialize the DB");
         } catch (IOException e) {
             e.printStackTrace();
+            throw new IllegalArgumentException("An IO exception occurred while initializing the DB");
         }
     }
 
     private void setupPreparedStatements() throws IOException, SQLException {
-        URL url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/addEntry.sql");
+        URL url = Resources.getResource(this.getClass(), "addEntry.sql");
         String sql = Resources.toString(url, Charsets.ISO_8859_1);
         addEntry = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/associateFileSha1ToEntryForBuildAndFileName.sql");
+        url = Resources.getResource(this.getClass(), "associateFileSha1ToEntryForBuildAndFileName.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         associateFileSha1ToEntryForBuildAndFileName = connection.prepareStatement(sql);
 
-        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/associateWarningToEntry.sql");
+        url = Resources.getResource(this.getClass(), "associateWarningToEntry.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         associateWarningToEntry = connection.prepareStatement(sql);
 
-        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/tearDown.sql");
+        url = Resources.getResource(this.getClass(), "tearDown.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         tearDown = connection.prepareStatement(sql);
 
-        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getEntryNumberFromBuild.sql");
+        url = Resources.getResource(this.getClass(), "getEntryNumberFromBuild.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         getEntryNumberFromBuild = connection.prepareStatement(sql);
 
-        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getEntryNumberFromBuildAndParser.sql");
+        url = Resources.getResource(this.getClass(), "getEntryNumberFromBuildAndParser.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         getEntryNumberFromBuildAndParser = connection.prepareStatement(sql);
 
-        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getFileNamesFromBuild.sql");
+        url = Resources.getResource(this.getClass(), "getFileNamesFromBuild.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         getFileNamesFromBuild = connection.prepareStatement(sql);
 
-        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/countBuildsBefore.sql");
+        url = Resources.getResource(this.getClass(), "countBuildsBefore.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         countBuildsBefore = connection.prepareStatement(sql);
 
-        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getFileSha1AndLineNumberForBuild.sql");
+        url = Resources.getResource(this.getClass(), "getFileSha1AndLineNumberForBuild.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         getFileSha1AndLineNumberForBuild = connection.prepareStatement(sql);
 
-        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getNewFileSha1AndLineNumberForBuild.sql");
+        url = Resources.getResource(this.getClass(), "getNewFileSha1AndLineNumberForBuild.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         getNewFileSha1AndLineNumberForBuild = connection.prepareStatement(sql);
 
-        url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/getEntriesForBuildFileSha1AndLineNumber.sql");
+        url = Resources.getResource(this.getClass(), "getEntriesForBuildFileSha1AndLineNumber.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         getEntriesForBuildFileSha1AndLineNumber = connection.prepareStatement(sql);
     }
@@ -117,7 +119,7 @@ public class H2Controller implements DbController {
     }
 
     private void createSchema() throws IOException, SQLException {
-        URL url = Resources.getResource("org/jenkins/plugins/qualityTrends/sql/schema.sql");
+        URL url = Resources.getResource(this.getClass(), "schema.sql");
         String sql = Resources.toString(url, Charsets.ISO_8859_1);
         PreparedStatement createSchema = connection.prepareStatement(sql);
         createSchema.execute();

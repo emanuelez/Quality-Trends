@@ -32,8 +32,8 @@
 
     <pluginRepositories>
         <pluginRepository>
-            <id>m.g.o-public</id>
-            <url>http://maven.glassfish.org/content/groups/public/</url>
+            <id>maven.jenkins-ci.org</id>
+            <url>http://maven.jenkins-ci.org/content/repositories/releases</url>
         </pluginRepository>
     </pluginRepositories>
 
@@ -48,11 +48,6 @@
             <groupId>com.google.code.guice</groupId>
             <artifactId>guice</artifactId>
             <version>2.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hsqldb</groupId>
-            <artifactId>hsqldb</artifactId>
-            <version>2.2.4</version>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
