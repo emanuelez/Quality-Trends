@@ -2,6 +2,7 @@ SELECT DISTINCT file_sha1, line_number
 FROM entries e1
 WHERE
    build_number = ?
+   AND NOT file_sha1 IS NULL
    AND NOT EXISTS (
       SELECT DISTINCT file_sha1, line_number
       FROM entries e2

@@ -75,7 +75,6 @@ public class QualityTrendsRunnable implements Runnable {
                     for (Map.Entry<Parser, Pattern> entry : patterns.entrySet()) {
                         Matcher matcher = entry.getValue().matcher(line);
                         if (matcher.matches()) {
-                            System.out.println("Line: " + line);
                             storage.addParserResult(entry.getKey().getParserResult(matcher));
                         }
                     }

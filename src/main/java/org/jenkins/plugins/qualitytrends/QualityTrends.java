@@ -13,7 +13,6 @@ import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
-import hudson.model.Descriptor;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
@@ -122,6 +121,7 @@ public class QualityTrends extends Recorder implements Serializable {
         } catch (Exception e) {
             if (e instanceof RuntimeException) {
                 // Be a good boy and let runtime exceptions go their way
+                e.printStackTrace();
                 return true;
             }
             error(e.getMessage());
@@ -129,17 +129,21 @@ public class QualityTrends extends Recorder implements Serializable {
             return false;
         }
 
+        build.addAction(new BuildAction(build));
 
         return true;
     }
 
     private boolean generateWarnings(Git git) throws NoSuchAlgorithmException, IOException, QualityTrendsException {
+        info("Generating and storing warnings...");
+
         // Find the new (fileSha1,lineNumber) couples
         Map<String, Integer> couples = storage.getNewFileSha1AndLineNumber();
 
         // Compute the contextSha1 for the new (fileSha1,lineNumber) couples
         Map<Map.Entry<String, Integer>, String> contextSha1 = Maps.newHashMap();
         for (Map.Entry<String, Integer> couple : couples.entrySet()) {
+            System.out.println(couple.getKey() + " -> " + couple.getValue());
             String sha1 = Sha1Utils.generateContextSha1(
                     BlobUtils.getContent(git.getRepository(), git.getRepository().resolve(couple.getKey())),
                     couple.getValue());
@@ -155,6 +159,7 @@ public class QualityTrends extends Recorder implements Serializable {
                 storage.addWarning(warningSha1, entry);
             }
         }
+        info("Done");
         return true;
     }
 
