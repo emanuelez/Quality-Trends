@@ -4,7 +4,7 @@ def l = namespace(lib.LayoutTagLib)
 
 l.layout(title: _("Build Quality Trends")) {
     l.header() {
-        include(my, "ieFix.jelly")
+        script(src: "/plugin/quality-trends/excanvas.js")
         script(src: "/plugin/quality-trends/jquery.js")
         script("jQuery.noConflict();")
         script(src: "/plugin/quality-trends/jquery.flot.js")

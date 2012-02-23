@@ -1,3 +1,0 @@
-<j:jelly xmlns:j="jelly:core">
-<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="../excanvas.min.js"></script><![endif]-->
-</j:jelly>
