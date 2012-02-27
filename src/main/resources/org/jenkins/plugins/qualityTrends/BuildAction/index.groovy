@@ -8,6 +8,8 @@ l.layout(title: _("Build Quality Trends")) {
         script(src: "/plugin/quality-trends/jquery.js")
         script("jQuery.noConflict();")
         script(src: "/plugin/quality-trends/jquery.flot.js")
+        script(src: "/plugin/quality-trends/jquery.flot.pie.js")
+
     }
     include(my.build, "sidepanel")
     l.main_panel {
@@ -16,12 +18,23 @@ l.layout(title: _("Build Quality Trends")) {
         div(id: "chart_div", style: "width:600px;height:300px;")
         script("""
 jQuery(function () {
-    var d2 = [[0, 3], [4, 8], [8, 5], [9, 13]];
+    var data = [
+        { label: "Series1",  data: 10},
+        { label: "Series2",  data: 30},
+        { label: "Series3",  data: 90},
+        { label: "Series4",  data: 70},
+        { label: "Series5",  data: 80},
+        { label: "Series6",  data: 110}
+    ];
 
-    // a null signifies separate line segments
-    var d3 = [[0, 12], [7, 12], null, [7, 2.5], [12, 2.5]];
-
-    jQuery.plot(jQuery("#chart_div"), [ d2, d3 ]);
+    jQuery.plot(jQuery("#chart_div"), data,
+        {
+            series: {
+                pie: {
+                    show: true
+                }
+            }
+        });
 });""")
     }
 }
