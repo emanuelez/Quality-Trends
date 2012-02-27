@@ -65,4 +65,12 @@ public interface DbController {
     Map<String, Integer> getNewFileSha1AndLineNumberForBuild(int buildNumber) throws SQLException;
 
     Set<Entry> getEntriesForBuildFileSha1AndLineNumber(int buildNumber, String fileSha1, int lineNumber) throws SQLException;
+
+    int countInfosForBuild(int buildNumber);
+
+    int countWarningsForBuild(int buildNumber);
+
+    int countErrorsForBuild(int buildNumber);
+
+    int countOrphansForBuild(int buildNumber);
 }

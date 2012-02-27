@@ -107,6 +107,22 @@ public class DbBuildStorageManager implements BuildStorageManager {
         }
     }
 
+    public int getInfos() {
+        return controller.countInfosForBuild(buildNumber);
+    }
+
+    public int getWarnings() {
+        return controller.countWarningsForBuild(buildNumber);
+    }
+
+    public int getErrors() {
+        return controller.countErrorsForBuild(buildNumber);
+    }
+
+    public int getOrphans() {
+        return controller.countOrphansForBuild(buildNumber);
+    }
+
     private boolean isFirstBuild() throws SQLException {
         return controller.countBuildsBefore(buildNumber) == 0;
     }

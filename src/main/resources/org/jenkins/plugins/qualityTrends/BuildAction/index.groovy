@@ -16,15 +16,13 @@ l.layout(title: _("Build Quality Trends")) {
         h1(_("Build Quality Trends"))
         h2(_("Build Summary"))
         div(id: "chart_div", style: "width:600px;height:300px;")
-        script("""
+        script(String.format("""
 jQuery(function () {
     var data = [
-        { label: "Series1",  data: 10},
-        { label: "Series2",  data: 30},
-        { label: "Series3",  data: 90},
-        { label: "Series4",  data: 70},
-        { label: "Series5",  data: 80},
-        { label: "Series6",  data: 110}
+        { label: "Info", data: %s, color: "#ffff66"},
+        { label: "Warnings", data: %s, color: "#ffcc00"},
+        { label: "Errors",  data: %s, color: "#cc0000"},
+        { label: "Orphans",  data: %s, color: "#cccccc"}
     ];
 
     jQuery.plot(jQuery("#chart_div"), data,
@@ -35,7 +33,7 @@ jQuery(function () {
                 }
             }
         });
-});""")
+});""", my.infos, my.warnings, my.errors, my.orphans))
     }
 }
 

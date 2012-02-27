@@ -23,4 +23,12 @@ public interface BuildStorageManager {
     Set<Entry> findEntriesForFileSha1AndLineNumber(String key, int value) throws QualityTrendsException;
 
     void addWarning(String warningSha1, Entry entry) throws QualityTrendsException;
+
+    int getInfos();
+
+    int getWarnings();
+
+    int getErrors();
+
+    int getOrphans();
 }

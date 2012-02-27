@@ -1,6 +1,7 @@
 package org.jenkins.plugins.qualitytrends.model;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
@@ -28,6 +29,8 @@ public class H2Controller implements DbController {
     private PreparedStatement countBuildsBefore;
     private PreparedStatement getFileSha1AndLineNumberForBuild;
     private PreparedStatement getNewFileSha1AndLineNumberForBuild;
+    private PreparedStatement countSeverityForBuild;
+    private PreparedStatement countOrphansForBuild;
 
     @Inject
     public H2Controller(@Assisted String path) {
@@ -103,6 +106,14 @@ public class H2Controller implements DbController {
         url = Resources.getResource(this.getClass(), "getEntriesForBuildFileSha1AndLineNumber.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         getEntriesForBuildFileSha1AndLineNumber = connection.prepareStatement(sql);
+
+        url = Resources.getResource(this.getClass(), "countSeverityForBuild.sql");
+        sql = Resources.toString(url, Charsets.ISO_8859_1);
+        countSeverityForBuild = connection.prepareStatement(sql);
+
+        url = Resources.getResource(this.getClass(), "countOrphansForBuild.sql");
+        sql = Resources.toString(url, Charsets.ISO_8859_1);
+        countOrphansForBuild = connection.prepareStatement(sql);
     }
 
     private boolean isSchemaOK() throws SQLException {
@@ -212,6 +223,61 @@ public class H2Controller implements DbController {
             result.add(entry);
         }
         return result;
+    }
+
+    public int countInfosForBuild(int buildNumber) {
+        try {
+            countSeverityForBuild.setInt(1, buildNumber);
+            countSeverityForBuild.setString(2, Severity.INFO.toString());
+            ResultSet resultSet = countSeverityForBuild.executeQuery();
+            resultSet.next();
+            return resultSet.getInt(1);
+        } catch (Throwable t) {
+            t.printStackTrace();
+            Throwables.propagate(t);
+            return 0;
+        }
+    }
+
+    public int countWarningsForBuild(int buildNumber) {
+        try {
+            countSeverityForBuild.setInt(1, buildNumber);
+            countSeverityForBuild.setString(2, Severity.WARNING.toString());
+            ResultSet resultSet = countSeverityForBuild.executeQuery();
+            resultSet.next();
+            return resultSet.getInt(1);
+        } catch (Throwable t) {
+            t.printStackTrace();
+            Throwables.propagate(t);
+            return 0;
+        }
+    }
+
+    public int countErrorsForBuild(int buildNumber) {
+        try {
+            countSeverityForBuild.setInt(1, buildNumber);
+            countSeverityForBuild.setString(2, Severity.ERROR.toString());
+            ResultSet resultSet = countSeverityForBuild.executeQuery();
+            resultSet.next();
+            return resultSet.getInt(1);
+        } catch (Throwable t) {
+            t.printStackTrace();
+            Throwables.propagate(t);
+            return 0;
+        }
+    }
+
+    public int countOrphansForBuild(int buildNumber) {
+        try {
+            countOrphansForBuild.setInt(1, buildNumber);
+            ResultSet resultSet = countOrphansForBuild.executeQuery();
+            resultSet.next();
+            return resultSet.getInt(1);
+        } catch (Throwable t) {
+            t.printStackTrace();
+            Throwables.propagate(t);
+            return 0;
+        }
     }
 
     public void associateWarningToEntry(String warningSha1, int entryId) throws SQLException {
