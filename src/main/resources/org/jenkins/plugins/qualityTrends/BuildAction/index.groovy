@@ -1,6 +1,7 @@
 package org.jenkins.plugins.qualityTrends.BuildAction
 
 def l = namespace(lib.LayoutTagLib)
+def st = namespace("jelly:stapler")
 
 l.layout(title: _("Build Quality Trends")) {
     l.header() {
@@ -15,25 +16,37 @@ l.layout(title: _("Build Quality Trends")) {
     l.main_panel {
         h1(_("Build Quality Trends"))
         h2(_("Build Summary"))
-        div(id: "chart_div", style: "width:600px;height:300px;")
-        script(String.format("""
-jQuery(function () {
-    var data = [
-        { label: "Info", data: %s, color: "#ffff66"},
-        { label: "Warnings", data: %s, color: "#ffcc00"},
-        { label: "Errors",  data: %s, color: "#cc0000"},
-        { label: "Orphans",  data: %s, color: "#cccccc"}
-    ];
+        div(id: "severity_chart", style: "width:600px;height:300px;text-align:center;background-color:#ddd") {
+            text("loading...")
+        }
+        st.bind(var: "it", value: my)
+        script("""
+            jQuery(function () {
 
-    jQuery.plot(jQuery("#chart_div"), data,
-        {
-            series: {
-                pie: {
-                    show: true
-                }
-            }
-        });
-});""", my.infos, my.warnings, my.errors, my.orphans))
+                it.getSeverities(function(t) {
+                    sev = t.responseObject();
+
+                    var data = [
+                        {label: "Info", data: sev.infos, color: "#ffff66"},
+                        {label: "Warnings", data: sev.warnings, color: "#ffcc00"},
+                        {label: "Errors", data: sev.errors, color: "#cc0000"},
+                        {label: "Orphans", data: sev.orphans, color: "#cccccc"}
+                    ];
+
+                    jQuery("#severity_chart").css("background-color", "#fff")
+
+                    jQuery.plot(jQuery("#severity_chart"), data,
+                        {
+                            series: {
+                                pie: {
+                                    show: true
+                                }
+                            }
+                        }
+                    );
+                });
+
+            });""")
     }
 }
 

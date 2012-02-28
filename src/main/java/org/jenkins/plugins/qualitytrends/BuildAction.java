@@ -2,14 +2,14 @@ package org.jenkins.plugins.qualitytrends;
 
 import com.google.common.base.Throwables;
 import com.google.inject.Guice;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
+import net.sf.json.JSONObject;
 import org.jenkins.plugins.qualitytrends.model.BuildStorageManager;
 import org.jenkins.plugins.qualitytrends.model.BuildStorageManagerFactory;
-import org.jenkins.plugins.qualitytrends.model.DbBuildStorageManager;
 import org.jenkins.plugins.qualitytrends.model.QualityTrendsModule;
+import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 /**
  * @author Emanuele Zattin
@@ -18,7 +18,7 @@ import org.jenkins.plugins.qualitytrends.model.QualityTrendsModule;
 public class BuildAction implements Action {
 
     private AbstractBuild build;
-    private BuildStorageManager storage;
+    transient private BuildStorageManager storage;
 
     public BuildAction(AbstractBuild build) {
         this.build = build;
@@ -40,6 +40,17 @@ public class BuildAction implements Action {
     public AbstractBuild getBuild() {
         return build;
     }
+
+    @JavaScriptMethod
+    public JSONObject getSeverities() {
+        if (storage == null) initStorage();
+        return new JSONObject()
+                .element("infos", this.getInfos())
+                .element("warnings", this.getWarnings())
+                .element("errors", this.getErrors())
+                .element("orphans", this.getOrphans());
+    }
+
 
     public int getInfos() {
         try {
