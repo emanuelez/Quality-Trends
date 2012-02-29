@@ -3,6 +3,7 @@ package org.jenkins.plugins.qualitytrends.model;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import hudson.model.AbstractBuild;
+import hudson.model.Run;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -121,6 +122,22 @@ public class DbBuildStorageManager implements BuildStorageManager {
 
     public int getOrphans() {
         return controller.countOrphansForBuild(buildNumber);
+    }
+
+    public int getInfos(Run previousSuccessfulBuild) {
+        return controller.countInfosForBuild(previousSuccessfulBuild.getNumber());
+    }
+
+    public int getWarnings(Run previousSuccessfulBuild) {
+        return controller.countWarningsForBuild(previousSuccessfulBuild.getNumber());
+    }
+
+    public int getErrors(Run previousSuccessfulBuild) {
+        return controller.countErrorsForBuild(previousSuccessfulBuild.getNumber());
+    }
+
+    public int getOrphans(Run previousSuccessfulBuild) {
+        return controller.countOrphansForBuild(previousSuccessfulBuild.getNumber());
     }
 
     private boolean isFirstBuild() throws SQLException {

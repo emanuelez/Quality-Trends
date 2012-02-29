@@ -1,5 +1,7 @@
 package org.jenkins.plugins.qualitytrends.model;
 
+import hudson.model.Run;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -31,4 +33,12 @@ public interface BuildStorageManager {
     int getErrors();
 
     int getOrphans();
+
+    int getInfos(Run previousSuccessfulBuild);
+
+    int getWarnings(Run previousSuccessfulBuild);
+
+    int getErrors(Run previousSuccessfulBuild);
+
+    int getOrphans(Run previousSuccessfulBuild);
 }

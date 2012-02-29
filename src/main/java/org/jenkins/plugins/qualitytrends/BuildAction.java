@@ -48,9 +48,57 @@ public class BuildAction implements Action {
                 .element("infos", this.getInfos())
                 .element("warnings", this.getWarnings())
                 .element("errors", this.getErrors())
-                .element("orphans", this.getOrphans());
+                .element("orphans", this.getOrphans())
+                .element("infos_prev", this.getPrevErrors())
+                .element("warnings_prev", this.getPrevWarnings())
+                .element("errors_prev", this.getPrevErrors())
+                .element("orphans_prev", this.getPrevOrphans());
     }
 
+
+    public int getPrevInfos() {
+        try {
+            if (storage == null) initStorage();
+            if (build.getPreviousSuccessfulBuild() == null) return 0;
+            return storage.getInfos(build.getPreviousSuccessfulBuild());
+        } catch(Throwable t) {
+            t.printStackTrace();
+            return 0;
+        }
+    }
+
+    public int getPrevWarnings() {
+        try {
+            if (storage == null) initStorage();
+            if (build.getPreviousSuccessfulBuild() == null) return 0;
+            return storage.getWarnings(build.getPreviousSuccessfulBuild());
+        } catch(Throwable t) {
+            t.printStackTrace();
+            return 0;
+        }
+    }
+
+    public int getPrevErrors() {
+        try {
+            if (storage == null) initStorage();
+            if (build.getPreviousSuccessfulBuild() == null) return 0;
+            return storage.getErrors(build.getPreviousSuccessfulBuild());
+        } catch(Throwable t) {
+            t.printStackTrace();
+            return 0;
+        }
+    }
+
+    public int getPrevOrphans() {
+        try {
+            if (storage == null) initStorage();
+            if (build.getPreviousSuccessfulBuild() == null) return 0;
+            return storage.getOrphans(build.getPreviousSuccessfulBuild());
+        } catch(Throwable t) {
+            t.printStackTrace();
+            return 0;
+        }
+    }
 
     public int getInfos() {
         try {
