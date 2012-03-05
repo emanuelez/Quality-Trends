@@ -20,7 +20,7 @@ public class GccCompiler extends Parser {
 
     @Override
     public String getRegex() {
-        return "^(.+?):(\\\\d+):(?:\\\\d+:)? (warning|error): (.*)$";
+        return "^(.+?):(\\d+):(?:\\d+:)? (warning|error): (.*)$";
     }
 
     @Override
