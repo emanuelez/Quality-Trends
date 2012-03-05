@@ -10,21 +10,21 @@ import java.util.Set;
  */
 public interface BuildStorageManager {
 
-    void addParserResult(ParserResult parserResult) throws QualityTrendsException;
+    void addParserResult(ParserResult parserResult);
 
-    int getEntryNumberForBuild() throws QualityTrendsException;
+    int getEntryNumberForBuild();
 
-    int getEntryNumberForBuildAndParser(Parser parser) throws QualityTrendsException;
+    int getEntryNumberForBuildAndParser(Parser parser);
 
-    Set<String> getFileNames() throws QualityTrendsException;
+    Set<String> getFileNames();
 
-    void updateEntryWithFileSha1(String fileName, String FileSha1) throws QualityTrendsException;
+    void updateEntryWithFileSha1(String fileName, String FileSha1);
 
-    Map<String, Integer> getNewFileSha1AndLineNumber() throws QualityTrendsException;
+    Map<String, Integer> getNewFileSha1AndLineNumber();
 
-    Set<Entry> findEntriesForFileSha1AndLineNumber(String key, int value) throws QualityTrendsException;
+    Set<Entry> findEntriesForFileSha1AndLineNumber(String key, int value);
 
-    void addWarning(String warningSha1, Entry entry) throws QualityTrendsException;
+    void addWarning(String warningSha1, Entry entry);
 
     int getInfos();
 

@@ -144,85 +144,124 @@ public class H2Controller implements DbController {
             String severity,
             @Nullable String issueId,
             String message,
-            @Nullable String link) throws SQLException {
-        addEntry.setInt(1, buildId);
-        addEntry.setString(2, fileName);
-        addEntry.setInt(3, lineNumber);
-        addEntry.setString(4, parser);
-        addEntry.setString(5, severity);
-        addEntry.setString(6, issueId);
-        addEntry.setString(7, message);
-        addEntry.setString(8, link);
-        addEntry.executeUpdate();
-        ResultSet generatedKeys = addEntry.getGeneratedKeys();
-        generatedKeys.next();
-        return generatedKeys.getInt(1);
-    }
-
-    public void associateFileSha1ToEntryForBuildAndFileName(int buildNumber, String fileName, String fileSha1) throws SQLException {
-        associateFileSha1ToEntryForBuildAndFileName.setString(1, fileSha1);
-        associateFileSha1ToEntryForBuildAndFileName.setInt(2, buildNumber);
-        associateFileSha1ToEntryForBuildAndFileName.setString(3, fileName);
-        associateFileSha1ToEntryForBuildAndFileName.executeUpdate();
-    }
-
-    public int countBuildsBefore(int buildNumber) throws SQLException {
-        countBuildsBefore.setInt(1, buildNumber);
-        countBuildsBefore.executeQuery();
-        ResultSet resultSet = countBuildsBefore.getResultSet();
-        resultSet.next();
-        return resultSet.getInt(1);
-    }
-
-    public Map<String, Integer> getFileSha1AndLineNumberForBuild(int buildNumber) throws SQLException {
-        getFileSha1AndLineNumberForBuild.setInt(1, buildNumber);
-        getFileSha1AndLineNumberForBuild.executeQuery();
-        ResultSet resultSet = getFileSha1AndLineNumberForBuild.getResultSet();
-        Map<String, Integer> result = Maps.newHashMap();
-        while (resultSet.next()) {
-            result.put(
-                    resultSet.getString("file_sha1"),
-                    resultSet.getInt("line_number"));
+            @Nullable String link){
+        try {
+            addEntry.setInt(1, buildId);
+            addEntry.setString(2, fileName);
+            addEntry.setInt(3, lineNumber);
+            addEntry.setString(4, parser);
+            addEntry.setString(5, severity);
+            addEntry.setString(6, issueId);
+            addEntry.setString(7, message);
+            addEntry.setString(8, link);
+            addEntry.executeUpdate();
+            ResultSet generatedKeys = addEntry.getGeneratedKeys();
+            generatedKeys.next();
+            return generatedKeys.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
+            return 0;
         }
-        return result;
     }
 
-    public Map<String, Integer> getNewFileSha1AndLineNumberForBuild(int buildNumber) throws SQLException {
-        getNewFileSha1AndLineNumberForBuild.setInt(1, buildNumber);
-        getNewFileSha1AndLineNumberForBuild.setInt(2, buildNumber);
-        getNewFileSha1AndLineNumberForBuild.executeQuery();
-        ResultSet resultSet = getNewFileSha1AndLineNumberForBuild.getResultSet();
-        Map<String, Integer> result = Maps.newHashMap();
-        while (resultSet.next()) {
-            result.put(
-                    resultSet.getString("file_sha1"),
-                    resultSet.getInt("line_number"));
+    public void associateFileSha1ToEntryForBuildAndFileName(int buildNumber, String fileName, String fileSha1) {
+        try {
+            associateFileSha1ToEntryForBuildAndFileName.setString(1, fileSha1);
+            associateFileSha1ToEntryForBuildAndFileName.setInt(2, buildNumber);
+            associateFileSha1ToEntryForBuildAndFileName.setString(3, fileName);
+            associateFileSha1ToEntryForBuildAndFileName.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
         }
-        return result;
     }
 
-    public Set<Entry> getEntriesForBuildFileSha1AndLineNumber(int buildNumber, String fileSha1, int lineNumber) throws SQLException {
-        getEntriesForBuildFileSha1AndLineNumber.setInt(1, buildNumber);
-        getEntriesForBuildFileSha1AndLineNumber.setString(2, fileSha1);
-        getEntriesForBuildFileSha1AndLineNumber.setInt(3, lineNumber);
-        ResultSet resultSet = getEntriesForBuildFileSha1AndLineNumber.executeQuery();
-        Set<Entry> result = Sets.newHashSet();
-        while (resultSet.next()) {
-            Entry entry = new EntryBuilder()
-                    .setBuildNumber(resultSet.getInt("build_number"))
-                    .setEntryId(resultSet.getInt("build_id"))
-                    .setFileName(resultSet.getString("file_name"))
-                    .setFileSha1(resultSet.getString("file_sha1"))
-                    .setIssueId(resultSet.getString("issue_id"))
-                    .setLineNumber(resultSet.getInt("line_number"))
-                    .setMessage(resultSet.getString("message"))
-                    .setParser(resultSet.getString("parser"))
-                    .setSeverity(resultSet.getString("severity"))
-                    .setWarningSha1(resultSet.getString("warning_sha1"))
-                    .createEntry();
-            result.add(entry);
+    public int countBuildsBefore(int buildNumber) {
+        try {
+            countBuildsBefore.setInt(1, buildNumber);
+            countBuildsBefore.executeQuery();
+            ResultSet resultSet = countBuildsBefore.getResultSet();
+            resultSet.next();
+            return resultSet.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
+            return 0;
         }
-        return result;
+
+    }
+
+    public Map<String, Integer> getFileSha1AndLineNumberForBuild(int buildNumber) {
+        try {
+            getFileSha1AndLineNumberForBuild.setInt(1, buildNumber);
+            getFileSha1AndLineNumberForBuild.executeQuery();
+            ResultSet resultSet = getFileSha1AndLineNumberForBuild.getResultSet();
+            Map<String, Integer> result = Maps.newHashMap();
+            while (resultSet.next()) {
+                result.put(
+                        resultSet.getString("file_sha1"),
+                        resultSet.getInt("line_number"));
+            }
+            return result;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
+            return null;
+        }
+
+    }
+
+    public Map<String, Integer> getNewFileSha1AndLineNumberForBuild(int buildNumber) {
+        try {
+            getNewFileSha1AndLineNumberForBuild.setInt(1, buildNumber);
+            getNewFileSha1AndLineNumberForBuild.setInt(2, buildNumber);
+            getNewFileSha1AndLineNumberForBuild.executeQuery();
+            ResultSet resultSet = getNewFileSha1AndLineNumberForBuild.getResultSet();
+            Map<String, Integer> result = Maps.newHashMap();
+            while (resultSet.next()) {
+                result.put(
+                        resultSet.getString("file_sha1"),
+                        resultSet.getInt("line_number"));
+            }
+            return result;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
+            return null;
+        }
+
+    }
+
+    public Set<Entry> getEntriesForBuildFileSha1AndLineNumber(int buildNumber, String fileSha1, int lineNumber) {
+        try {
+            getEntriesForBuildFileSha1AndLineNumber.setInt(1, buildNumber);
+            getEntriesForBuildFileSha1AndLineNumber.setString(2, fileSha1);
+            getEntriesForBuildFileSha1AndLineNumber.setInt(3, lineNumber);
+            ResultSet resultSet = getEntriesForBuildFileSha1AndLineNumber.executeQuery();
+            Set<Entry> result = Sets.newHashSet();
+            while (resultSet.next()) {
+                Entry entry = new EntryBuilder()
+                        .setBuildNumber(resultSet.getInt("build_number"))
+                        .setEntryId(resultSet.getInt("build_id"))
+                        .setFileName(resultSet.getString("file_name"))
+                        .setFileSha1(resultSet.getString("file_sha1"))
+                        .setIssueId(resultSet.getString("issue_id"))
+                        .setLineNumber(resultSet.getInt("line_number"))
+                        .setMessage(resultSet.getString("message"))
+                        .setParser(resultSet.getString("parser"))
+                        .setSeverity(resultSet.getString("severity"))
+                        .setWarningSha1(resultSet.getString("warning_sha1"))
+                        .createEntry();
+                result.add(entry);
+            }
+            return result;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
+            return null;
+        }
+
     }
 
     public int countInfosForBuild(int buildNumber) {
@@ -232,9 +271,9 @@ public class H2Controller implements DbController {
             ResultSet resultSet = countSeverityForBuild.executeQuery();
             resultSet.next();
             return resultSet.getInt(1);
-        } catch (Throwable t) {
-            t.printStackTrace();
-            Throwables.propagate(t);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
             return 0;
         }
     }
@@ -246,9 +285,9 @@ public class H2Controller implements DbController {
             ResultSet resultSet = countSeverityForBuild.executeQuery();
             resultSet.next();
             return resultSet.getInt(1);
-        } catch (Throwable t) {
-            t.printStackTrace();
-            Throwables.propagate(t);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
             return 0;
         }
     }
@@ -260,9 +299,9 @@ public class H2Controller implements DbController {
             ResultSet resultSet = countSeverityForBuild.executeQuery();
             resultSet.next();
             return resultSet.getInt(1);
-        } catch (Throwable t) {
-            t.printStackTrace();
-            Throwables.propagate(t);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
             return 0;
         }
     }
@@ -273,48 +312,80 @@ public class H2Controller implements DbController {
             ResultSet resultSet = countOrphansForBuild.executeQuery();
             resultSet.next();
             return resultSet.getInt(1);
-        } catch (Throwable t) {
-            t.printStackTrace();
-            Throwables.propagate(t);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
             return 0;
         }
     }
 
-    public void associateWarningToEntry(String warningSha1, int entryId) throws SQLException {
-        associateWarningToEntry.setString(1, warningSha1);
-        associateWarningToEntry.setInt(2, entryId);
-        associateWarningToEntry.executeUpdate();
-    }
-
-    public void tearDownDb() throws SQLException {
-        tearDown.execute();
-    }
-
-    public int getEntryNumberFromBuild(int buildNumber) throws SQLException {
-        getEntryNumberFromBuild.setInt(1, buildNumber);
-        getEntryNumberFromBuild.execute();
-        ResultSet resultSet = getEntryNumberFromBuild.getResultSet();
-        resultSet.next();
-        return resultSet.getInt(1);
-    }
-
-    public int getEntryNumberFromBuildAndParser(int buildNumber, String parser) throws SQLException {
-        getEntryNumberFromBuildAndParser.setInt(1, buildNumber);
-        getEntryNumberFromBuildAndParser.setString(2, parser);
-        getEntryNumberFromBuildAndParser.execute();
-        ResultSet resultSet = getEntryNumberFromBuildAndParser.getResultSet();
-        resultSet.next();
-        return resultSet.getInt(1);
-    }
-
-    public Set<String> getFileNames(int build_id) throws SQLException {
-        getFileNamesFromBuild.setInt(1, build_id);
-        getFileNamesFromBuild.execute();
-        ResultSet resultSet = getFileNamesFromBuild.getResultSet();
-        Set<String> fileNames = Sets.newHashSet();
-        while (resultSet.next()) {
-            fileNames.add(resultSet.getString(1));
+    public void associateWarningToEntry(String warningSha1, int entryId) {
+        try {
+            associateWarningToEntry.setString(1, warningSha1);
+            associateWarningToEntry.setInt(2, entryId);
+            associateWarningToEntry.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
         }
-        return fileNames;
+
+    }
+
+    public void tearDownDb() {
+        try {
+            tearDown.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
+        }
+    }
+
+    public int getEntryNumberFromBuild(int buildNumber) {
+        try {
+            getEntryNumberFromBuild.setInt(1, buildNumber);
+            getEntryNumberFromBuild.execute();
+            ResultSet resultSet = getEntryNumberFromBuild.getResultSet();
+            resultSet.next();
+            return resultSet.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
+            return 0;
+        }
+
+    }
+
+    public int getEntryNumberFromBuildAndParser(int buildNumber, String parser) {
+        try {
+            getEntryNumberFromBuildAndParser.setInt(1, buildNumber);
+            getEntryNumberFromBuildAndParser.setString(2, parser);
+            getEntryNumberFromBuildAndParser.execute();
+            ResultSet resultSet = getEntryNumberFromBuildAndParser.getResultSet();
+            resultSet.next();
+            return resultSet.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
+            return 0;
+        }
+
+    }
+
+    public Set<String> getFileNames(int build_id) {
+        try {
+            getFileNamesFromBuild.setInt(1, build_id);
+            getFileNamesFromBuild.execute();
+            ResultSet resultSet = getFileNamesFromBuild.getResultSet();
+            Set<String> fileNames = Sets.newHashSet();
+            while (resultSet.next()) {
+                fileNames.add(resultSet.getString(1));
+            }
+            return fileNames;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
+            return null;
+        }
+
     }
 }

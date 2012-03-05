@@ -25,58 +25,36 @@ public class DbBuildStorageManager implements BuildStorageManager {
         buildNumber = build.getNumber();
     }
 
-    public void addParserResult(ParserResult parserResult) throws QualityTrendsException {
-        try {
-            controller.addEntry(
-                    buildNumber,
-                    parserResult.getFile(),
-                    parserResult.getLineNumber(),
-                    parserResult.getParser(),
-                    parserResult.getSeverity().toString(),
-                    parserResult.getIssueId(),
-                    parserResult.getMessage(),
-                    parserResult.getLink());
-        } catch (SQLException e) {
-            throw new QualityTrendsException("Could not add entry");
-        }
-
+    public void addParserResult(ParserResult parserResult) {
+    controller.addEntry(
+        buildNumber,
+        parserResult.getFile(),
+        parserResult.getLineNumber(),
+        parserResult.getParser(),
+        parserResult.getSeverity().toString(),
+        parserResult.getIssueId(),
+        parserResult.getMessage(),
+        parserResult.getLink());
     }
 
-    public int getEntryNumberForBuild() throws QualityTrendsException {
-        try {
-            return controller.getEntryNumberFromBuild(buildNumber);
-        } catch (SQLException e) {
-            throw new QualityTrendsException("Could not count entries");
-        }
+    public int getEntryNumberForBuild(){
+        return controller.getEntryNumberFromBuild(buildNumber);
     }
 
-    public int getEntryNumberForBuildAndParser(Parser parser) throws QualityTrendsException {
-        try {
-            return controller.getEntryNumberFromBuildAndParser(buildNumber, parser.getName());
-        } catch (SQLException e) {
-            throw new QualityTrendsException("Could not count entries for parser");
-        }
+    public int getEntryNumberForBuildAndParser(Parser parser) {
+        return controller.getEntryNumberFromBuildAndParser(buildNumber, parser.getName());
     }
 
-    public Set<String> getFileNames() throws QualityTrendsException {
-        try {
-            return controller.getFileNames(buildNumber);
-        } catch (SQLException e) {
-            throw new QualityTrendsException("Could not get the file names");
-        }
+    public Set<String> getFileNames() {
+        return controller.getFileNames(buildNumber);
     }
 
-    public void updateEntryWithFileSha1(String fileName, String fileSha1) throws QualityTrendsException {
-        try {
-            controller.associateFileSha1ToEntryForBuildAndFileName(buildNumber, fileName, fileSha1);
-        } catch (SQLException e) {
-            throw new QualityTrendsException("Could not update the entries");
-        }
+    public void updateEntryWithFileSha1(String fileName, String fileSha1) {
+        controller.associateFileSha1ToEntryForBuildAndFileName(buildNumber, fileName, fileSha1);
     }
 
-    public Map<String, Integer> getNewFileSha1AndLineNumber() throws QualityTrendsException {
+    public Map<String, Integer> getNewFileSha1AndLineNumber() {
         Map<String, Integer> result;
-        try {
             if (isFirstBuild()) {
                 // get all the couples for this build
                 result = controller.getFileSha1AndLineNumberForBuild(buildNumber);
@@ -84,28 +62,15 @@ public class DbBuildStorageManager implements BuildStorageManager {
                 // get only the new couples introduced by this build
                 result = controller.getNewFileSha1AndLineNumberForBuild(buildNumber);
             }
-        } catch (SQLException e) {
-            throw new QualityTrendsException("Could not get the previous build");
-        }
         return result;
     }
 
-    public Set<Entry> findEntriesForFileSha1AndLineNumber(String fileSha1, int lineNumber) throws QualityTrendsException {
-        Set<Entry> result;
-        try {
-            result = controller.getEntriesForBuildFileSha1AndLineNumber(buildNumber, fileSha1, lineNumber);
-        } catch (SQLException e) {
-            throw new QualityTrendsException("Could not get the entries for the specified file SHA1 and line number");
-        }
-        return result;
+    public Set<Entry> findEntriesForFileSha1AndLineNumber(String fileSha1, int lineNumber) {
+        return controller.getEntriesForBuildFileSha1AndLineNumber(buildNumber, fileSha1, lineNumber);
     }
 
-    public void addWarning(String warningSha1, Entry entry) throws QualityTrendsException {
-        try {
-            controller.associateWarningToEntry(warningSha1, entry.getEntryId());
-        } catch (SQLException e) {
-            throw new QualityTrendsException("Could not associate warning to entry");
-        }
+    public void addWarning(String warningSha1, Entry entry) {
+        controller.associateWarningToEntry(warningSha1, entry.getEntryId());
     }
 
     public int getInfos() {
@@ -140,7 +105,7 @@ public class DbBuildStorageManager implements BuildStorageManager {
         return controller.countOrphansForBuild(previousSuccessfulBuild.getNumber());
     }
 
-    private boolean isFirstBuild() throws SQLException {
+    private boolean isFirstBuild() {
         return controller.countBuildsBefore(buildNumber) == 0;
     }
 }
