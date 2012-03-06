@@ -13,10 +13,11 @@ public class Entry {
     private String severity;
     private String issueId;
     private String message;
+    private String link;
     private String fileSha1;
     private String warningSha1;
 
-    public Entry(int entryId, int buildNumber, String fileName, int lineNumber, String parser, String severity, String issueId, String message, String fileSha1, String warningSha1) {
+    public Entry(int entryId, int buildNumber, String fileName, int lineNumber, String parser, String severity, String issueId, String message, String link, String fileSha1, String warningSha1) {
         this.entryId = entryId;
         this.buildNumber = buildNumber;
         this.fileName = fileName;
@@ -25,8 +26,17 @@ public class Entry {
         this.severity = severity;
         this.issueId = issueId;
         this.message = message;
+        this.link = link;
         this.fileSha1 = fileSha1;
         this.warningSha1 = warningSha1;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
     }
 
     public int getEntryId() {

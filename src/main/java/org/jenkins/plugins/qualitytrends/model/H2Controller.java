@@ -3,6 +3,7 @@ package org.jenkins.plugins.qualitytrends.model;
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
+import com.google.common.io.CharStreams;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -10,6 +11,9 @@ import com.google.inject.internal.Maps;
 import com.google.inject.internal.Nullable;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.URL;
 import java.sql.*;
 import java.util.Map;
@@ -147,13 +151,13 @@ public class H2Controller implements DbController {
             @Nullable String link){
         try {
             addEntry.setInt(1, buildId);
-            addEntry.setString(2, fileName);
+            addEntry.setClob(2, new StringReader(fileName));
             addEntry.setInt(3, lineNumber);
             addEntry.setString(4, parser);
             addEntry.setString(5, severity);
             addEntry.setString(6, issueId);
-            addEntry.setString(7, message);
-            addEntry.setString(8, link);
+            addEntry.setClob(7, new StringReader(message));
+            addEntry.setClob(8, link != null?new StringReader(link):null);
             addEntry.executeUpdate();
             ResultSet generatedKeys = addEntry.getGeneratedKeys();
             generatedKeys.next();
@@ -169,7 +173,7 @@ public class H2Controller implements DbController {
         try {
             associateFileSha1ToEntryForBuildAndFileName.setString(1, fileSha1);
             associateFileSha1ToEntryForBuildAndFileName.setInt(2, buildNumber);
-            associateFileSha1ToEntryForBuildAndFileName.setString(3, fileName);
+            associateFileSha1ToEntryForBuildAndFileName.setClob(3, new StringReader(fileName));
             associateFileSha1ToEntryForBuildAndFileName.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -241,14 +245,30 @@ public class H2Controller implements DbController {
             ResultSet resultSet = getEntriesForBuildFileSha1AndLineNumber.executeQuery();
             Set<Entry> result = Sets.newHashSet();
             while (resultSet.next()) {
+                Reader in = resultSet.getClob("file_name").getCharacterStream();
+                StringWriter out = new StringWriter();
+                CharStreams.copy(in, out);
+                String fileName = out.toString();
+
+                in = resultSet.getClob("message").getCharacterStream();
+                out = new StringWriter();
+                CharStreams.copy(in, out);
+                String message = out.toString();
+
+                in = resultSet.getClob("link").getCharacterStream();
+                out = new StringWriter();
+                CharStreams.copy(in, out);
+                String link = out.toString();
+
                 Entry entry = new EntryBuilder()
                         .setBuildNumber(resultSet.getInt("build_number"))
                         .setEntryId(resultSet.getInt("build_id"))
-                        .setFileName(resultSet.getString("file_name"))
+                        .setFileName(fileName)
                         .setFileSha1(resultSet.getString("file_sha1"))
                         .setIssueId(resultSet.getString("issue_id"))
                         .setLineNumber(resultSet.getInt("line_number"))
-                        .setMessage(resultSet.getString("message"))
+                        .setMessage(message)
+                        .setLink(link)
                         .setParser(resultSet.getString("parser"))
                         .setSeverity(resultSet.getString("severity"))
                         .setWarningSha1(resultSet.getString("warning_sha1"))
@@ -257,6 +277,10 @@ public class H2Controller implements DbController {
             }
             return result;
         } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
+            return null;
+        } catch (IOException e) {
             e.printStackTrace();
             Throwables.propagate(e);
             return null;
@@ -378,10 +402,17 @@ public class H2Controller implements DbController {
             ResultSet resultSet = getFileNamesFromBuild.getResultSet();
             Set<String> fileNames = Sets.newHashSet();
             while (resultSet.next()) {
-                fileNames.add(resultSet.getString(1));
+                Reader in = resultSet.getClob(1).getCharacterStream();
+                StringWriter out = new StringWriter();
+                CharStreams.copy(in, out);
+                fileNames.add(out.toString());
             }
             return fileNames;
         } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
+            return null;
+        } catch (IOException e) {
             e.printStackTrace();
             Throwables.propagate(e);
             return null;

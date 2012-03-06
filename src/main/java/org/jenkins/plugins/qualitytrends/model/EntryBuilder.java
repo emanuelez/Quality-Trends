@@ -9,6 +9,7 @@ public class EntryBuilder {
     private String severity;
     private String issueId;
     private String message;
+    private String link;
     private String fileSha1;
     private String warningSha1;
 
@@ -52,6 +53,11 @@ public class EntryBuilder {
         return this;
     }
 
+    public EntryBuilder setLink(String link) {
+        this.link = link;
+        return this;
+    }
+
     public EntryBuilder setFileSha1(String fileSha1) {
         this.fileSha1 = fileSha1;
         return this;
@@ -63,6 +69,6 @@ public class EntryBuilder {
     }
 
     public Entry createEntry() {
-        return new Entry(entryId, buildNumber, fileName, lineNumber, parser, severity, issueId, message, fileSha1, warningSha1);
+        return new Entry(entryId, buildNumber, fileName, lineNumber, parser, severity, issueId, message, link, fileSha1, warningSha1);
     }
 }
