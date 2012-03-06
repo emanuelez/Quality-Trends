@@ -133,11 +133,23 @@ public class H2Controller implements DbController {
         return isOk;
     }
 
-    private void createSchema() throws IOException, SQLException {
+    private void createSchema() {
         URL url = Resources.getResource(this.getClass(), "schema.sql");
-        String sql = Resources.toString(url, Charsets.ISO_8859_1);
-        PreparedStatement createSchema = connection.prepareStatement(sql);
-        createSchema.execute();
+        String sql = null;
+        try {
+            sql = Resources.toString(url, Charsets.ISO_8859_1);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
+        }
+        PreparedStatement createSchema;
+        try {
+            createSchema = connection.prepareStatement(sql);
+            createSchema.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
+        }
     }
 
     public int addEntry(
@@ -228,6 +240,7 @@ public class H2Controller implements DbController {
                         resultSet.getString("file_sha1"),
                         resultSet.getInt("line_number"));
             }
+            resultSet.close();
             return result;
         } catch (SQLException e) {
             e.printStackTrace();

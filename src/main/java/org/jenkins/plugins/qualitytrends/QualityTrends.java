@@ -51,10 +51,9 @@ import java.util.concurrent.Future;
 public class QualityTrends extends Recorder implements Serializable {
 
     private Set<Parser> parsers = Sets.newHashSet();
-    private Future future;
-    private BuildStorageManager storage;
+    private transient Future future;
+    private transient BuildStorageManager storage;
     private transient PrintStream logger;
-
 
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
