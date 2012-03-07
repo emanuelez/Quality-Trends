@@ -1,20 +1,21 @@
+var currentSeverities;
+
 it.getSeverities(function (t) {
     sev = t.responseObject();
 
     YUI().use('charts', function (Y) {
         // Create data
-        var myDataValues = [
-            {severity: "Info", amount: sev.infos},
-            {severity: "Warnings", amount: sev.warnings},
-            {severity: "Errors", amount: sev.errors},
-            {severity: "Orphans", amount: sev.orphans}
+        currentSeverities = [
+            {severity: "Info", amount: sev.data[0].INFO},
+            {severity: "Warnings", amount: sev.data[0].WARNINGS},
+            {severity: "Errors", amount: sev.data[0].ERRORS}
         ];
 
         var pieGraph = new Y.Chart({
             render: "#severity_chart",
             categoryKey: "severity",
             seriesKeys: ["amount"],
-            dataProvider: myDataValues,
+            dataProvider: currentSeverities,
             type: "pie",
             seriesCollection: [
                 {
@@ -25,8 +26,7 @@ it.getSeverities(function (t) {
                             colors: [
                                 "#ffff66",
                                 "#ffcc00",
-                                "#cc0000",
-                                "#cccccc"
+                                "#cc0000"
                             ]
                         }
                     }
@@ -34,6 +34,10 @@ it.getSeverities(function (t) {
             ]
         });
     });
+});
+
+it.getSeverities(function (t) {
+    psev = t.responseObject();
 
     YUI().use('datatable-base', function(Y) {
         var calcImprovement = function (o) {
@@ -57,22 +61,41 @@ it.getSeverities(function (t) {
                 case 2:
                     return '<div style="background-color: #cc0000; height:11px; width:11px; border: 1px solid black; margin-left:auto; margin-right:auto;">&nbsp;</div>';
                     break;
-                case 3:
-                    return '<div style="background-color: #cccccc; height:11px; width:11px; border: 1px solid black; margin-left:auto; margin-right:auto;">&nbsp;</div>';
-                    break;
             }
         };
 
-        var cols = [{key: "Color", formatter: calcColor}, "Severity", "Amount", { key: "Improvement", formatter: calcImprovement } ],
+        var cols = [{key: "Color", formatter: calcColor}, "Severity", "Amount", { key: "Improvement", formatter: calcImprovement }],
         data = [
-            {Severity: "Info", Amount: sev.infos, Previous: sev.infos_prev},
-            {Severity: "Warnings", Amount: sev.warnings, Previous: sev.warnings_prev},
-            {Severity: "Errors", Amount: sev.errors, Previous: sev.errors_prev},
-            {Severity: "Orphans", Amount: sev.orphans, Previous: sev.orphans_prev}
+            {Severity: "Info",     Amount: currentSeverities[0].amount, Previous: psev.data[0].INFO},
+            {Severity: "Warnings", Amount: currentSeverities[1].amount, Previous: psev.data[0].WARNINGS},
+            {Severity: "Errors",   Amount: currentSeverities[2].amount, Previous: psev.data[0].ERRORS}
         ],
         dt = new Y.DataTable.Base({
             columnset: cols,
             recordset: data
         }).render("#severity_table");
+    });
+});
+
+it.getParsers(function (t) {
+    par = t.responseObject();
+
+    YUI().use('charts', function (Y) {
+        // Create data
+        currentParsers = par.data;
+
+        var pieGraph = new Y.Chart({
+            render: "#parser_chart",
+            categoryKey: "PARSER",
+            seriesKeys: ["AMOUNT"],
+            dataProvider: currentParsers,
+            type: "pie",
+            seriesCollection: [
+                {
+                    categoryKey: "PARSER",
+                    valueKey: "AMOUNT"
+                }
+            ]
+        });
     });
 });

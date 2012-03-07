@@ -44,100 +44,38 @@ public class BuildAction implements Action {
     @JavaScriptMethod
     public JSONObject getSeverities() {
         if (storage == null) initStorage();
-        return new JSONObject()
-                .element("infos", this.getInfos())
-                .element("warnings", this.getWarnings())
-                .element("errors", this.getErrors())
-                .element("orphans", this.getOrphans())
-                .element("infos_prev", this.getPrevErrors())
-                .element("warnings_prev", this.getPrevWarnings())
-                .element("errors_prev", this.getPrevErrors())
-                .element("orphans_prev", this.getPrevOrphans());
+        return storage.getSeverities();
     }
 
-
-    public int getPrevInfos() {
-        try {
-            if (storage == null) initStorage();
-            if (build.getPreviousSuccessfulBuild() == null) return 0;
-            return storage.getInfos(build.getPreviousSuccessfulBuild());
-        } catch(Throwable t) {
-            t.printStackTrace();
-            return 0;
-        }
+    @JavaScriptMethod
+    public JSONObject getPreviousSeverities() {
+        if (storage == null) initStorage();
+        return storage.getPreviousSeverities();
     }
 
-    public int getPrevWarnings() {
-        try {
-            if (storage == null) initStorage();
-            if (build.getPreviousSuccessfulBuild() == null) return 0;
-            return storage.getWarnings(build.getPreviousSuccessfulBuild());
-        } catch(Throwable t) {
-            t.printStackTrace();
-            return 0;
-        }
+    @JavaScriptMethod
+    public JSONObject getParsers() {
+        if (storage == null) initStorage();
+        return storage.getParsers();
     }
 
-    public int getPrevErrors() {
-        try {
-            if (storage == null) initStorage();
-            if (build.getPreviousSuccessfulBuild() == null) return 0;
-            return storage.getErrors(build.getPreviousSuccessfulBuild());
-        } catch(Throwable t) {
-            t.printStackTrace();
-            return 0;
-        }
+    @JavaScriptMethod
+    public JSONObject getPreviousParsers() {
+        if (storage == null) initStorage();
+        return storage.getPreviousParsers();
     }
 
-    public int getPrevOrphans() {
-        try {
-            if (storage == null) initStorage();
-            if (build.getPreviousSuccessfulBuild() == null) return 0;
-            return storage.getOrphans(build.getPreviousSuccessfulBuild());
-        } catch(Throwable t) {
-            t.printStackTrace();
-            return 0;
-        }
+    @JavaScriptMethod
+    public int getPreviousOrphans() {
+        if (storage == null) initStorage();
+        if (build.getPreviousSuccessfulBuild() == null) return 0;
+        return storage.getPreviousOrphans();
     }
 
-    public int getInfos() {
-        try {
-            if (storage == null) initStorage();
-            return storage.getInfos();
-        } catch(Throwable t) {
-            t.printStackTrace();
-            return 0;
-        }
-    }
-
-    public int getWarnings() {
-        try {
-            if (storage == null) initStorage();
-            return storage.getWarnings();
-        } catch(Throwable t) {
-            t.printStackTrace();
-            return 0;
-        }
-    }
-
-    public int getErrors() {
-        try {
-            if (storage == null) initStorage();
-            return storage.getErrors();
-        } catch(Throwable t) {
-            t.printStackTrace();
-            return 0;
-        }
-    }
-
+    @JavaScriptMethod
     public int getOrphans() {
-        try {
-            if (storage == null) initStorage();
-            return storage.getOrphans();
-        } catch(Throwable t) {
-            t.printStackTrace();
-            return 0;
-        }
+        if (storage == null) initStorage();
+        return storage.getOrphans();
     }
 
     public String getIconFileName() {

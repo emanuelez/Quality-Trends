@@ -1,6 +1,6 @@
 package org.jenkins.plugins.qualitytrends.model;
 
-import hudson.model.Run;
+import net.sf.json.JSONObject;
 
 import java.util.Map;
 import java.util.Set;
@@ -26,19 +26,15 @@ public interface BuildStorageManager {
 
     void addWarning(String warningSha1, Entry entry);
 
-    int getInfos();
-
-    int getWarnings();
-
-    int getErrors();
-
     int getOrphans();
 
-    int getInfos(Run previousSuccessfulBuild);
+    int getPreviousOrphans();
 
-    int getWarnings(Run previousSuccessfulBuild);
+    JSONObject getSeverities();
 
-    int getErrors(Run previousSuccessfulBuild);
+    JSONObject getPreviousSeverities();
 
-    int getOrphans(Run previousSuccessfulBuild);
+    JSONObject getParsers();
+
+    JSONObject getPreviousParsers();
 }

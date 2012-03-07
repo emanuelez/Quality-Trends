@@ -1,9 +1,10 @@
 package org.jenkins.plugins.qualitytrends.model;
 
+import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import hudson.model.AbstractBuild;
-import hudson.model.Run;
+import net.sf.json.JSONObject;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -16,6 +17,7 @@ import java.util.Set;
 public class DbBuildStorageManager implements BuildStorageManager {
 
     private int buildNumber;
+    private int previousBuildNumber;
     private DbController controller;
 
     @Inject
@@ -23,6 +25,11 @@ public class DbBuildStorageManager implements BuildStorageManager {
         String url = new File(build.getParent().getRootDir(), "qualityTrends").getAbsolutePath();
         this.controller = controllerFactory.create(url);
         buildNumber = build.getNumber();
+        if (build.getPreviousSuccessfulBuild() != null) {
+            previousBuildNumber = build.getPreviousSuccessfulBuild().getNumber();
+        } else {
+            previousBuildNumber = 0;
+        }
     }
 
     public void addParserResult(ParserResult parserResult) {
@@ -73,36 +80,40 @@ public class DbBuildStorageManager implements BuildStorageManager {
         controller.associateWarningToEntry(warningSha1, entry.getEntryId());
     }
 
-    public int getInfos() {
-        return controller.countInfosForBuild(buildNumber);
-    }
-
-    public int getWarnings() {
-        return controller.countWarningsForBuild(buildNumber);
-    }
-
-    public int getErrors() {
-        return controller.countErrorsForBuild(buildNumber);
-    }
-
     public int getOrphans() {
         return controller.countOrphansForBuild(buildNumber);
     }
 
-    public int getInfos(Run previousSuccessfulBuild) {
-        return controller.countInfosForBuild(previousSuccessfulBuild.getNumber());
+    public int getPreviousOrphans() {
+        return previousBuildNumber==0?0:controller.countOrphansForBuild(previousBuildNumber);
     }
 
-    public int getWarnings(Run previousSuccessfulBuild) {
-        return controller.countWarningsForBuild(previousSuccessfulBuild.getNumber());
+    public JSONObject getSeverities() {
+        return controller.getSeverities(buildNumber);
     }
 
-    public int getErrors(Run previousSuccessfulBuild) {
-        return controller.countErrorsForBuild(previousSuccessfulBuild.getNumber());
+    public JSONObject getPreviousSeverities() {
+        if (previousBuildNumber != 0) {
+            return controller.getSeverities(previousBuildNumber);
+        } else {
+            Map<String, String> data = Maps.newHashMap();
+            data.put("INFO", "0");
+            data.put("WARNINGS", "0");
+            data.put("ERRORS", "0");
+            return new JSONObject()
+                    .element("result", "success")
+                    .element("data", data);
+
+        }
     }
 
-    public int getOrphans(Run previousSuccessfulBuild) {
-        return controller.countOrphansForBuild(previousSuccessfulBuild.getNumber());
+    public JSONObject getParsers() {
+        return controller.getParsers(buildNumber);
+    }
+
+    public JSONObject getPreviousParsers() {
+        // TODO: implement the method
+        return null;
     }
 
     private boolean isFirstBuild() {

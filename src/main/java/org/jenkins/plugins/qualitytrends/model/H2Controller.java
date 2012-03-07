@@ -9,6 +9,8 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.internal.Maps;
 import com.google.inject.internal.Nullable;
+import net.sf.json.JSONObject;
+import org.jenkins.plugins.qualitytrends.util.JSONUtil;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -33,7 +35,8 @@ public class H2Controller implements DbController {
     private PreparedStatement countBuildsBefore;
     private PreparedStatement getFileSha1AndLineNumberForBuild;
     private PreparedStatement getNewFileSha1AndLineNumberForBuild;
-    private PreparedStatement countSeverityForBuild;
+    private PreparedStatement getSeveritiesForBuild;
+    private PreparedStatement getParsersForBuild;
     private PreparedStatement countOrphansForBuild;
 
     @Inject
@@ -111,9 +114,13 @@ public class H2Controller implements DbController {
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         getEntriesForBuildFileSha1AndLineNumber = connection.prepareStatement(sql);
 
-        url = Resources.getResource(this.getClass(), "countSeverityForBuild.sql");
+        url = Resources.getResource(this.getClass(), "getSeveritiesForBuild.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
-        countSeverityForBuild = connection.prepareStatement(sql);
+        getSeveritiesForBuild = connection.prepareStatement(sql);
+
+        url = Resources.getResource(this.getClass(), "getParsersForBuild.sql");
+        sql = Resources.toString(url, Charsets.ISO_8859_1);
+        getParsersForBuild = connection.prepareStatement(sql);
 
         url = Resources.getResource(this.getClass(), "countOrphansForBuild.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
@@ -301,48 +308,6 @@ public class H2Controller implements DbController {
 
     }
 
-    public int countInfosForBuild(int buildNumber) {
-        try {
-            countSeverityForBuild.setInt(1, buildNumber);
-            countSeverityForBuild.setString(2, Severity.INFO.toString());
-            ResultSet resultSet = countSeverityForBuild.executeQuery();
-            resultSet.next();
-            return resultSet.getInt(1);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            Throwables.propagate(e);
-            return 0;
-        }
-    }
-
-    public int countWarningsForBuild(int buildNumber) {
-        try {
-            countSeverityForBuild.setInt(1, buildNumber);
-            countSeverityForBuild.setString(2, Severity.WARNING.toString());
-            ResultSet resultSet = countSeverityForBuild.executeQuery();
-            resultSet.next();
-            return resultSet.getInt(1);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            Throwables.propagate(e);
-            return 0;
-        }
-    }
-
-    public int countErrorsForBuild(int buildNumber) {
-        try {
-            countSeverityForBuild.setInt(1, buildNumber);
-            countSeverityForBuild.setString(2, Severity.ERROR.toString());
-            ResultSet resultSet = countSeverityForBuild.executeQuery();
-            resultSet.next();
-            return resultSet.getInt(1);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            Throwables.propagate(e);
-            return 0;
-        }
-    }
-
     public int countOrphansForBuild(int buildNumber) {
         try {
             countOrphansForBuild.setInt(1, buildNumber);
@@ -353,6 +318,30 @@ public class H2Controller implements DbController {
             e.printStackTrace();
             Throwables.propagate(e);
             return 0;
+        }
+    }
+
+    public JSONObject getSeverities(int buildNumber) {
+        try {
+            getSeveritiesForBuild.setInt(1, buildNumber);
+            ResultSet resultSet = getSeveritiesForBuild.executeQuery();
+            return JSONUtil.ResultSet2JSONObject(resultSet);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
+            return null;
+        }
+    }
+
+    public JSONObject getParsers(int buildNumber) {
+        try {
+            getParsersForBuild.setInt(1, buildNumber);
+            ResultSet resultSet = getParsersForBuild.executeQuery();
+            return JSONUtil.ResultSet2JSONObject(resultSet);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
+            return null;
         }
     }
 

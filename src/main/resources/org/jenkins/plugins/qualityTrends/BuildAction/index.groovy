@@ -11,12 +11,16 @@ l.layout(title: _("Build Quality Trends")) {
     include(my.build, "sidepanel")
     l.main_panel {
         h1(_("Build Quality Trends"))
-        div(id: "severity") {
+        div(id: "severity", style: "clear:both") {
             h2(_("Severity"))
-            div(id: "severity_chart", style: "width:400px;height:300px;float:right;")
-            div(id: "severity_table", class: "yui3-skin-sam")
+            div(id: "severity_chart", style: "width:200px;height:200px;float:left;margin-right:10px")
+            div(id: "severity_table", style: "float:left", class: "yui3-skin-sam")
         }
-        st.bind(var: "it", value: my)
+        div(id: "parsers", style: "clear:both; margin-top:10px") {
+            h2(_("Parsers"))
+            div(id: "parser_chart", style: "width:200px;height:200px;float:left;margin-right:10px")
+            div(id: "parser_table", style: "float:left", class: "yui3-skin-sam")
+        }
     }
 }
 

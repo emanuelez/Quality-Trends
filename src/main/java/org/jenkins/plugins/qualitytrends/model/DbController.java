@@ -1,6 +1,7 @@
 package org.jenkins.plugins.qualitytrends.model;
 
 import com.google.inject.internal.Nullable;
+import net.sf.json.JSONObject;
 
 import java.util.Map;
 import java.util.Set;
@@ -62,11 +63,9 @@ public interface DbController {
 
     Set<Entry> getEntriesForBuildFileSha1AndLineNumber(int buildNumber, String fileSha1, int lineNumber);
 
-    int countInfosForBuild(int buildNumber);
-
-    int countWarningsForBuild(int buildNumber);
-
-    int countErrorsForBuild(int buildNumber);
-
     int countOrphansForBuild(int buildNumber);
+
+    JSONObject getSeverities(int buildNumber);
+
+    JSONObject getParsers(int buildNumber);
 }
