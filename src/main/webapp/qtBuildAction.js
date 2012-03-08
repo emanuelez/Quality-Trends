@@ -6,9 +6,9 @@ it.getSeverities(function (t) {
     YUI().use('charts', function (Y) {
         // Create data
         currentSeverities = [
-            {severity: "Info", amount: sev.data[0].INFO},
-            {severity: "Warnings", amount: sev.data[0].WARNINGS},
-            {severity: "Errors", amount: sev.data[0].ERRORS}
+            {severity: "Info", amount: sev.info},
+            {severity: "Warnings", amount: sev.warnings},
+            {severity: "Errors", amount: sev.errors}
         ];
 
         var pieGraph = new Y.Chart({
@@ -66,9 +66,9 @@ it.getSeverities(function (t) {
 
         var cols = [{key: "Color", formatter: calcColor}, "Severity", "Amount", { key: "Improvement", formatter: calcImprovement }],
         data = [
-            {Severity: "Info",     Amount: currentSeverities[0].amount, Previous: psev.data[0].INFO},
-            {Severity: "Warnings", Amount: currentSeverities[1].amount, Previous: psev.data[0].WARNINGS},
-            {Severity: "Errors",   Amount: currentSeverities[2].amount, Previous: psev.data[0].ERRORS}
+            {Severity: "Info",     Amount: currentSeverities[0].amount, Previous: psev.info},
+            {Severity: "Warnings", Amount: currentSeverities[1].amount, Previous: psev.warnings},
+            {Severity: "Errors",   Amount: currentSeverities[2].amount, Previous: psev.errors}
         ],
         dt = new Y.DataTable.Base({
             columnset: cols,
@@ -82,20 +82,82 @@ it.getParsers(function (t) {
 
     YUI().use('charts', function (Y) {
         // Create data
-        currentParsers = par.data;
+        currentParsers = par;
 
-        var pieGraph = new Y.Chart({
+        parserPieGraph = new Y.Chart({
             render: "#parser_chart",
-            categoryKey: "PARSER",
-            seriesKeys: ["AMOUNT"],
+            categoryKey: "parser",
+            seriesKeys: ["amount"],
             dataProvider: currentParsers,
             type: "pie",
             seriesCollection: [
                 {
-                    categoryKey: "PARSER",
-                    valueKey: "AMOUNT"
+                    categoryKey: "parser",
+                    valueKey: "amount"
                 }
             ]
+        });
+    });
+
+    it.getPreviousParsers(function (t) {
+        ppar = t.responseObject();
+
+        // Find all the parsers
+        cParsers = new Hash();
+        pParsers = new Hash();
+        for (i = 0; i < par.length; i++) {
+            cParsers.set(par[i].parser, par[i].amount);
+        }
+        for (i = 0; i < par.length; i++) {
+            pParsers.set(ppar[i].parser, ppar[i].amount);
+        }
+        allParsers = cParsers.merge(pParsers);
+
+        parserData = [];
+
+        allParsers.each(function(pair) {
+            parser = pair.key;
+
+            current = 0;
+            if (cParsers.keys().indexOf(parser) >= 0) {
+                current = cParsers.get(parser);
+            }
+
+            previous = 0;
+            if (pParsers.keys().indexOf(parser) >= 0) {
+                previous = pParsers.get(parser);
+            }
+
+            parserData.push({Parser: parser, Current: current, Previous: previous});
+        });
+
+        YUI().use('datatable-base', function(Y) {
+            var calcParserImprovement = function (o) {
+                        value = o.record.getValue("Current") - o.record.getValue("Previous");
+
+                        color = "black";
+                        if (value > 0) color = "red";
+                        if (value < 0) color = "green";
+
+                        return '<font color="' + color + '">' + value + '</font>'
+                    };
+
+            var calcParserColor = function (o) {
+                var p = o.record.getValue("Parser");
+
+                var index = cParsers.keys().indexOf(p);
+
+                if (index >= 0) {
+                    var defaultColors = parserPieGraph.get('seriesCollection')[0]._styles.marker.fill.colors;
+                    return '<div style="background-color: ' + defaultColors[index] + '; height:11px; width:11px; border: 1px solid black; margin-left:auto; margin-right:auto;">&nbsp;</div>';
+                }
+            };
+
+            var cols = [{key: "Color", formatter: calcParserColor}, "Parser", "Current", {key: "Improvement", formatter: calcParserImprovement}],
+                    dt = new Y.DataTable.Base({
+                        columnset: cols,
+                        recordset: parserData
+                    }).render("#parser_table");
         });
     });
 });

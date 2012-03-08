@@ -1,7 +1,6 @@
 package org.jenkins.plugins.qualitytrends.model;
 
 import com.google.inject.internal.Nullable;
-import net.sf.json.JSONObject;
 
 import java.util.Map;
 import java.util.Set;
@@ -65,7 +64,7 @@ public interface DbController {
 
     int countOrphansForBuild(int buildNumber);
 
-    JSONObject getSeverities(int buildNumber);
+    Map<String, Integer> getSeverities(int buildNumber);
 
-    JSONObject getParsers(int buildNumber);
+    Map<String, Integer> getParsers(int buildNumber);
 }

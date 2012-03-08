@@ -1,7 +1,5 @@
 package org.jenkins.plugins.qualitytrends.model;
 
-import net.sf.json.JSONObject;
-
 import java.util.Map;
 import java.util.Set;
 
@@ -30,11 +28,11 @@ public interface BuildStorageManager {
 
     int getPreviousOrphans();
 
-    JSONObject getSeverities();
+    Map<String, Integer> getSeverities();
 
-    JSONObject getPreviousSeverities();
+    Map<String, Integer> getPreviousSeverities();
 
-    JSONObject getParsers();
+    Map<String, Integer> getParsers();
 
-    JSONObject getPreviousParsers();
+    Map<String, Integer> getPreviousParsers();
 }

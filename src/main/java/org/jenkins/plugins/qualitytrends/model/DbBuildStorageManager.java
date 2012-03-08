@@ -8,6 +8,7 @@ import net.sf.json.JSONObject;
 
 import java.io.File;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -88,30 +89,23 @@ public class DbBuildStorageManager implements BuildStorageManager {
         return previousBuildNumber==0?0:controller.countOrphansForBuild(previousBuildNumber);
     }
 
-    public JSONObject getSeverities() {
+    public Map<String, Integer> getSeverities() {
         return controller.getSeverities(buildNumber);
     }
 
-    public JSONObject getPreviousSeverities() {
+    public Map<String, Integer> getPreviousSeverities() {
         if (previousBuildNumber != 0) {
             return controller.getSeverities(previousBuildNumber);
         } else {
-            Map<String, String> data = Maps.newHashMap();
-            data.put("INFO", "0");
-            data.put("WARNINGS", "0");
-            data.put("ERRORS", "0");
-            return new JSONObject()
-                    .element("result", "success")
-                    .element("data", data);
-
+            return new HashMap<String, Integer>();
         }
     }
 
-    public JSONObject getParsers() {
+    public Map<String, Integer> getParsers() {
         return controller.getParsers(buildNumber);
     }
 
-    public JSONObject getPreviousParsers() {
+    public Map<String, Integer> getPreviousParsers() {
         // TODO: implement the method
         return null;
     }

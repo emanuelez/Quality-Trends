@@ -5,11 +5,14 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.jenkins.plugins.qualitytrends.model.BuildStorageManager;
 import org.jenkins.plugins.qualitytrends.model.BuildStorageManagerFactory;
 import org.jenkins.plugins.qualitytrends.model.QualityTrendsModule;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
+
+import java.util.Map;
 
 /**
  * @author Emanuele Zattin
@@ -42,27 +45,41 @@ public class BuildAction implements Action {
     }
 
     @JavaScriptMethod
-    public JSONObject getSeverities() {
+    public Map<String, Integer> getSeverities() {
         if (storage == null) initStorage();
         return storage.getSeverities();
     }
 
     @JavaScriptMethod
-    public JSONObject getPreviousSeverities() {
+    public Map<String, Integer> getPreviousSeverities() {
         if (storage == null) initStorage();
         return storage.getPreviousSeverities();
     }
 
     @JavaScriptMethod
-    public JSONObject getParsers() {
+    public JSONArray getParsers() {
         if (storage == null) initStorage();
-        return storage.getParsers();
+        JSONArray jsonArray = new JSONArray();
+        for (Map.Entry<String, Integer> entry : storage.getParsers().entrySet()) {
+            JSONObject json = new JSONObject()
+                    .accumulate("parser", entry.getKey())
+                    .accumulate("amount", entry.getValue());
+            jsonArray.add(json);
+        }
+        return jsonArray;
     }
 
     @JavaScriptMethod
-    public JSONObject getPreviousParsers() {
+    public JSONArray getPreviousParsers() {
         if (storage == null) initStorage();
-        return storage.getPreviousParsers();
+        JSONArray jsonArray = new JSONArray();
+        for (Map.Entry<String, Integer> entry : storage.getParsers().entrySet()) {
+            JSONObject json = new JSONObject()
+                    .accumulate("parser", entry.getKey())
+                    .accumulate("amount", entry.getValue());
+            jsonArray.add(json);
+        }
+        return jsonArray;
     }
 
     @JavaScriptMethod

@@ -9,8 +9,6 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.internal.Maps;
 import com.google.inject.internal.Nullable;
-import net.sf.json.JSONObject;
-import org.jenkins.plugins.qualitytrends.util.JSONUtil;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -321,11 +319,16 @@ public class H2Controller implements DbController {
         }
     }
 
-    public JSONObject getSeverities(int buildNumber) {
+    public Map<String, Integer> getSeverities(int buildNumber) {
         try {
             getSeveritiesForBuild.setInt(1, buildNumber);
             ResultSet resultSet = getSeveritiesForBuild.executeQuery();
-            return JSONUtil.ResultSet2JSONObject(resultSet);
+            resultSet.next();
+            Map<String, Integer> result = Maps.newHashMap();
+            result.put("info", resultSet.getInt(1));
+            result.put("warnings", resultSet.getInt(2));
+            result.put("errors", resultSet.getInt(3));
+            return result;
         } catch (SQLException e) {
             e.printStackTrace();
             Throwables.propagate(e);
@@ -333,11 +336,15 @@ public class H2Controller implements DbController {
         }
     }
 
-    public JSONObject getParsers(int buildNumber) {
+    public Map<String, Integer> getParsers(int buildNumber) {
         try {
             getParsersForBuild.setInt(1, buildNumber);
             ResultSet resultSet = getParsersForBuild.executeQuery();
-            return JSONUtil.ResultSet2JSONObject(resultSet);
+            Map<String, Integer> result = Maps.newHashMap();
+            while (resultSet.next()) {
+                result.put(resultSet.getString(1), resultSet.getInt(2));
+            }
+            return result;
         } catch (SQLException e) {
             e.printStackTrace();
             Throwables.propagate(e);
