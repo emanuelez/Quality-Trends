@@ -13,13 +13,18 @@ l.layout(title: _("Build Quality Trends")) {
         h1(_("Build Quality Trends"))
         div(id: "severity", style: "clear:both") {
             h2(_("Severity"))
-            div(id: "severity_chart", style: "width:200px;height:200px;float:left;margin-right:10px")
+            div(id: "severity_chart", style: "width:150px;height:150px;float:left;margin-right:10px")
             div(id: "severity_table", style: "float:left", class: "yui3-skin-sam")
         }
         div(id: "parsers", style: "clear:both; margin-top:10px") {
             h2(_("Parsers"))
-            div(id: "parser_chart", style: "width:200px;height:200px;float:left;margin-right:10px")
+            div(id: "parser_chart", style: "width:150px;height:150px;float:left;margin-right:10px")
             div(id: "parser_table", style: "float:left", class: "yui3-skin-sam")
+        }
+        div(id: "orphans", style: "clear:both; margin-top:10px") {
+            h2(_("Orphans"))
+            div(id: "orphan_chart", style: "width:150px;height:150px;float:left;margin-right:10px")
+            div(id: "orphan_table", style: "float:left", class: "yui3-skin-sam")
         }
     }
 }

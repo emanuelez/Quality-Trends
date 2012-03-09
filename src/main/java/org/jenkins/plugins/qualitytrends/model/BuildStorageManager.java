@@ -24,9 +24,9 @@ public interface BuildStorageManager {
 
     void addWarning(String warningSha1, Entry entry);
 
-    int getOrphans();
+    Map<String, Integer> getOrphans();
 
-    int getPreviousOrphans();
+    Map<String, Integer> getPreviousOrphans();
 
     Map<String, Integer> getSeverities();
 

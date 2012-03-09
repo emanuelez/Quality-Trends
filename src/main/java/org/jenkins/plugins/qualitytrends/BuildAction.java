@@ -83,14 +83,13 @@ public class BuildAction implements Action {
     }
 
     @JavaScriptMethod
-    public int getPreviousOrphans() {
+    public Map<String, Integer> getPreviousOrphans() {
         if (storage == null) initStorage();
-        if (build.getPreviousSuccessfulBuild() == null) return 0;
         return storage.getPreviousOrphans();
     }
 
     @JavaScriptMethod
-    public int getOrphans() {
+    public Map<String, Integer> getOrphans() {
         if (storage == null) initStorage();
         return storage.getOrphans();
     }

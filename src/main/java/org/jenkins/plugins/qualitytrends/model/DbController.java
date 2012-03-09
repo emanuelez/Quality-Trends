@@ -62,7 +62,7 @@ public interface DbController {
 
     Set<Entry> getEntriesForBuildFileSha1AndLineNumber(int buildNumber, String fileSha1, int lineNumber);
 
-    int countOrphansForBuild(int buildNumber);
+    Map<String, Integer> countOrphansForBuild(int buildNumber);
 
     Map<String, Integer> getSeverities(int buildNumber);
 

@@ -306,16 +306,19 @@ public class H2Controller implements DbController {
 
     }
 
-    public int countOrphansForBuild(int buildNumber) {
+    public Map<String, Integer> countOrphansForBuild(int buildNumber) {
         try {
             countOrphansForBuild.setInt(1, buildNumber);
             ResultSet resultSet = countOrphansForBuild.executeQuery();
             resultSet.next();
-            return resultSet.getInt(1);
+            Map<String, Integer> result = Maps.newHashMap();
+            result.put("total", resultSet.getInt(1));
+            result.put("orphans", resultSet.getInt(2));
+            return result;
         } catch (SQLException e) {
             e.printStackTrace();
             Throwables.propagate(e);
-            return 0;
+            return null;
         }
     }
 

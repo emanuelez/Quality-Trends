@@ -186,4 +186,64 @@ function draw() {
             });
         });
     });
+
+    it.getOrphans(function (t) {
+        var orp = t.responseObject();
+        var currentOrphans;
+
+        YUI().use('charts', function (Y) {
+            // Create data
+            currentOrphans = [
+                {Type:"Regular", Amount:orp.total - orp.orphans},
+                {Type:"Orphans", Amount:orp.orphans}
+            ];
+
+            var pieGraph = new Y.Chart({
+                render:"#orphan_chart",
+                categoryKey:"Type",
+                seriesKeys:["Amount"],
+                dataProvider:currentOrphans,
+                type:"pie",
+                seriesCollection:[
+                    {
+                        categoryKey:"Type",
+                        valueKey:"Amount",
+                        styles:{
+                            fill:{
+                                colors:[
+                                    "#00cc00",
+                                    "#cc0000"
+                                ]
+                            }
+                        }
+                    }
+                ]
+            });
+        });
+
+        YUI().use('datatable-base', function (Y) {
+                        var calcColor = function (o) {
+                            switch (o.rowindex) {
+                                case 0:
+                                    return '<div style="background-color: #00cc00; height:11px; width:11px; border: 1px solid black; margin-left:auto; margin-right:auto;">&nbsp;</div>';
+                                    break;
+                                case 1:
+                                    return '<div style="background-color: #cc0000; height:11px; width:11px; border: 1px solid black; margin-left:auto; margin-right:auto;">&nbsp;</div>';
+                                    break;
+                            }
+                        };
+
+                        var cols = [
+                                {key:"Color", formatter:calcColor},
+                                "Type",
+                                "Amount"
+                            ],
+                            dt = new Y.DataTable.Base({
+                                columnset:cols,
+                                recordset:currentOrphans
+                            }).render("#orphan_table");
+                    });
+
+
+    });
 }

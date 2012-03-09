@@ -1,10 +1,8 @@
 package org.jenkins.plugins.qualitytrends.model;
 
-import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import hudson.model.AbstractBuild;
-import net.sf.json.JSONObject;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -81,12 +79,12 @@ public class DbBuildStorageManager implements BuildStorageManager {
         controller.associateWarningToEntry(warningSha1, entry.getEntryId());
     }
 
-    public int getOrphans() {
+    public Map<String, Integer> getOrphans() {
         return controller.countOrphansForBuild(buildNumber);
     }
 
-    public int getPreviousOrphans() {
-        return previousBuildNumber==0?0:controller.countOrphansForBuild(previousBuildNumber);
+    public Map<String, Integer> getPreviousOrphans() {
+        return previousBuildNumber==0?new HashMap<String, Integer>():controller.countOrphansForBuild(previousBuildNumber);
     }
 
     public Map<String, Integer> getSeverities() {
