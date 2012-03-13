@@ -1,3 +1,9 @@
+function drawPager(currentPage, totalNumber, limit, elementId) {
+    var p = document.createElement('p');
+    p.innerHTML = 'Page ' + currentPage + ' of ' + Math.ceil(totalNumber/limit);
+    $(elementId).appendChild(p);
+}
+
 YUI().use('node', function(Y) {
 
     function init() {
@@ -282,5 +288,9 @@ function draw() {
                 recordset: entries.data
             }).render("#entry_table");
         });
+        if (entries.totalNumber > 50) {
+            drawPager(1, entries.totalNumber, 50, 'entry_table_container');
+        }
+
     });
 }
