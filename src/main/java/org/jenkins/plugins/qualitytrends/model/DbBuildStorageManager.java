@@ -7,6 +7,7 @@ import hudson.model.AbstractBuild;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -106,6 +107,14 @@ public class DbBuildStorageManager implements BuildStorageManager {
     public Map<String, Integer> getPreviousParsers() {
         // TODO: implement the method
         return null;
+    }
+
+    public int getEntryCount() {
+        return controller.countEntries(buildNumber);
+    }
+
+    public List<Entry> getEntries(int start, int limit, String orderBy, String direction) {
+        return controller.getEntries(buildNumber, start, limit, orderBy, direction);
     }
 
     private boolean isFirstBuild() {

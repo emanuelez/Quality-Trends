@@ -17,24 +17,24 @@ function draw() {
         YUI().use('charts', function (Y) {
             // Create data
             currentSeverities = [
-                {severity:"Info", amount:sev.info},
-                {severity:"Warnings", amount:sev.warnings},
-                {severity:"Errors", amount:sev.errors}
+                {severity: "Info", amount: sev.info},
+                {severity: "Warnings", amount: sev.warnings},
+                {severity: "Errors", amount: sev.errors}
             ];
 
-            var pieGraph = new Y.Chart({
-                render:"#severity_chart",
-                categoryKey:"severity",
-                seriesKeys:["amount"],
-                dataProvider:currentSeverities,
-                type:"pie",
+            new Y.Chart({
+                render: "#severity_chart",
+                categoryKey: "severity",
+                seriesKeys: ["amount"],
+                dataProvider: currentSeverities,
+                type: "pie",
                 seriesCollection:[
                     {
-                        categoryKey:"severity",
-                        valueKey:"amount",
-                        styles:{
-                            fill:{
-                                colors:[
+                        categoryKey: "severity",
+                        valueKey: "amount",
+                        styles: {
+                            fill: {
+                                colors: [
                                     "#ffff66",
                                     "#ffcc00",
                                     "#cc0000"
@@ -46,8 +46,8 @@ function draw() {
             });
         });
 
-        it.getSeverities(function (t) {
-            var psev = t.responseObject();
+        it.getPreviousSeverities(function (t2) {
+            var psev = t2.responseObject();
 
             YUI().use('datatable-base', function (Y) {
                 var calcImprovement = function (o) {
@@ -57,7 +57,7 @@ function draw() {
                     if (value > 0) color = "red";
                     if (value < 0) color = "green";
 
-                    return '<font color="' + color + '">' + value + '</font>'
+                    return '<font color="' + color + '">' + value + '</font>';
                 };
 
                 var calcColor = function (o) {
@@ -75,19 +75,19 @@ function draw() {
                 };
 
                 var cols = [
-                        {key:"Color", formatter:calcColor},
+                        {key: "Color", formatter: calcColor},
                         "Severity",
                         "Amount",
-                        { key:"Improvement", formatter:calcImprovement }
-                    ],
-                    data = [
-                        {Severity:"Info", Amount:currentSeverities[0].amount, Previous:psev.info},
-                        {Severity:"Warnings", Amount:currentSeverities[1].amount, Previous:psev.warnings},
-                        {Severity:"Errors", Amount:currentSeverities[2].amount, Previous:psev.errors}
-                    ],
-                    dt = new Y.DataTable.Base({
-                        columnset:cols,
-                        recordset:data
+                        { key: "Improvement", formatter: calcImprovement }
+                    ];
+                var data = [
+                        {Severity: "Info", Amount: currentSeverities[0].amount, Previous: psev.info},
+                        {Severity: "Warnings", Amount: currentSeverities[1].amount, Previous: psev.warnings},
+                        {Severity: "Errors", Amount: currentSeverities[2].amount, Previous: psev.errors}
+                    ];
+                new Y.DataTable.Base({
+                        columnset: cols,
+                        recordset: data
                     }).render("#severity_table");
             });
         });
@@ -119,8 +119,8 @@ function draw() {
             });
         });
 
-        it.getPreviousParsers(function (t) {
-            var ppar = t.responseObject();
+        it.getPreviousParsers(function (t2) {
+            var ppar = t2.responseObject();
 
             // Find all the parsers
             var cParsers = new Hash();
@@ -178,11 +178,11 @@ function draw() {
                         "Parser",
                         "Current",
                         {key:"Improvement", formatter:calcParserImprovement}
-                    ],
-                    dt = new Y.DataTable.Base({
-                        columnset:cols,
-                        recordset:parserData
-                    }).render("#parser_table");
+                    ];
+                new Y.DataTable.Base({
+                    columnset:cols,
+                    recordset:parserData
+                }).render("#parser_table");
             });
         });
     });
@@ -198,7 +198,7 @@ function draw() {
                 {Type:"Orphans", Amount:orp.orphans}
             ];
 
-            var pieGraph = new Y.Chart({
+            new Y.Chart({
                 render:"#orphan_chart",
                 categoryKey:"Type",
                 seriesKeys:["Amount"],
@@ -222,28 +222,65 @@ function draw() {
         });
 
         YUI().use('datatable-base', function (Y) {
-                        var calcColor = function (o) {
-                            switch (o.rowindex) {
-                                case 0:
-                                    return '<div style="background-color: #00cc00; height:11px; width:11px; border: 1px solid black; margin-left:auto; margin-right:auto;">&nbsp;</div>';
-                                    break;
-                                case 1:
-                                    return '<div style="background-color: #cc0000; height:11px; width:11px; border: 1px solid black; margin-left:auto; margin-right:auto;">&nbsp;</div>';
-                                    break;
-                            }
-                        };
+            var calcColor = function (o) {
+                switch (o.rowindex) {
+                    case 0:
+                        return '<div style="background-color: #00cc00; height:11px; width:11px; border: 1px solid black; margin-left:auto; margin-right:auto;">&nbsp;</div>';
+                        break;
+                    case 1:
+                        return '<div style="background-color: #cc0000; height:11px; width:11px; border: 1px solid black; margin-left:auto; margin-right:auto;">&nbsp;</div>';
+                        break;
+                }
+            };
 
-                        var cols = [
-                                {key:"Color", formatter:calcColor},
-                                "Type",
-                                "Amount"
-                            ],
-                            dt = new Y.DataTable.Base({
-                                columnset:cols,
-                                recordset:currentOrphans
-                            }).render("#orphan_table");
-                    });
+            var cols = [
+                    {key:"Color", formatter:calcColor},
+                    "Type",
+                    "Amount"
+                ];
+            new Y.DataTable.Base({
+                columnset:cols,
+                recordset:currentOrphans
+            }).render("#orphan_table");
+        });
 
+    });
 
+    it.getEntries(1, 50, 'severity', 'DESC', function (t) {
+        var entries = t.responseObject();
+
+        var calcFileName = function (o) {
+            var fileName = o.record.getValue("file_name");
+            if (fileName.length > 25) {
+                return '[...]' + fileName.substring(fileName.length - 20);
+            } else {
+                return fileName;
+            }
+        };
+
+        var calcLineNumber = function (o) {
+            return o.record.getValue("line_number");
+        };
+
+        var calcParser = function (o) {
+            return o.record.getValue("parser");
+        };
+
+        var calcSeverity = function (o) {
+            return o.record.getValue("severity");
+        };
+
+        YUI().use('datatable-base', function (Y) {
+            var cols = [
+                {key: "File Name", formatter: calcFileName},
+                {key: "Line Number", formatter: calcLineNumber},
+                {key: "Parser", formatter: calcParser},
+                {key: "Severity", formatter: calcSeverity}];
+
+            new Y.DataTable.Base({
+                columnset: cols,
+                recordset: entries.data
+            }).render("#entry_table");
+        });
     });
 }

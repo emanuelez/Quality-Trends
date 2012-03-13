@@ -1,5 +1,6 @@
 package org.jenkins.plugins.qualitytrends.model;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,4 +36,8 @@ public interface BuildStorageManager {
     Map<String, Integer> getParsers();
 
     Map<String, Integer> getPreviousParsers();
+
+    int getEntryCount();
+
+    List<Entry> getEntries(int start, int limit, String orderBy, String direction);
 }

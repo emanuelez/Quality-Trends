@@ -2,6 +2,7 @@ package org.jenkins.plugins.qualitytrends.model;
 
 import com.google.inject.internal.Nullable;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -67,4 +68,8 @@ public interface DbController {
     Map<String, Integer> getSeverities(int buildNumber);
 
     Map<String, Integer> getParsers(int buildNumber);
+
+    int countEntries(int buildNumber);
+
+    List<Entry> getEntries(int buildNumber, int start, int limit, String orderBy, String direction);
 }

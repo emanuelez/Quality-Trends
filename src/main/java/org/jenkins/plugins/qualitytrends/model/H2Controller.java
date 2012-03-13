@@ -2,6 +2,7 @@ package org.jenkins.plugins.qualitytrends.model;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Resources;
@@ -16,6 +17,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
 import java.sql.*;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,6 +38,8 @@ public class H2Controller implements DbController {
     private PreparedStatement getSeveritiesForBuild;
     private PreparedStatement getParsersForBuild;
     private PreparedStatement countOrphansForBuild;
+    private PreparedStatement countEntriesForBuild;
+    private PreparedStatement getEntriesForBuild;
 
     @Inject
     public H2Controller(@Assisted String path) {
@@ -123,6 +127,10 @@ public class H2Controller implements DbController {
         url = Resources.getResource(this.getClass(), "countOrphansForBuild.sql");
         sql = Resources.toString(url, Charsets.ISO_8859_1);
         countOrphansForBuild = connection.prepareStatement(sql);
+
+        url = Resources.getResource(this.getClass(), "countEntriesForBuild.sql");
+        sql = Resources.toString(url, Charsets.ISO_8859_1);
+        countEntriesForBuild = connection.prepareStatement(sql);
     }
 
     private boolean isSchemaOK() throws SQLException {
@@ -280,7 +288,7 @@ public class H2Controller implements DbController {
 
                 Entry entry = new EntryBuilder()
                         .setBuildNumber(resultSet.getInt("build_number"))
-                        .setEntryId(resultSet.getInt("build_id"))
+                        .setEntryId(resultSet.getInt("entry_id"))
                         .setFileName(fileName)
                         .setFileSha1(resultSet.getString("file_sha1"))
                         .setIssueId(resultSet.getString("issue_id"))
@@ -353,6 +361,80 @@ public class H2Controller implements DbController {
             Throwables.propagate(e);
             return null;
         }
+    }
+
+    public int countEntries(int buildNumber) {
+        try {
+            countEntriesForBuild.setInt(1, buildNumber);
+            ResultSet resultSet = countEntriesForBuild.executeQuery();
+            resultSet.next();
+            return resultSet.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
+            return 0;
+        }
+    }
+
+    public List<Entry> getEntries(int buildNumber, int start, int limit, String orderBy, String direction) {
+        try {
+            String query = "SELECT * FROM entries WHERE warning_sha1 IS NULL AND build_number = #BUILD_NUMBER# ORDER BY #ORDER_BY_COLUMN# #DIRECTION# LIMIT #LIMIT# OFFSET #OFFSET#;";
+            query = query.replace("#BUILD_NUMBER#", Integer.toString(buildNumber));
+            query = query.replace("#ORDER_BY_COLUMN#", orderBy);
+            query = query.replace("#DIRECTION#", direction);
+            query = query.replace("#LIMIT#", Integer.toString(limit));
+            query = query.replace("#OFFSET#", Integer.toString(start));
+            getEntriesForBuild = connection.prepareStatement(query);
+
+            ResultSet resultSet = getEntriesForBuild.executeQuery();
+            List<Entry> result = Lists.newArrayList();
+            while(resultSet.next()) {
+                Reader in = resultSet.getClob("file_name").getCharacterStream();
+                StringWriter out = new StringWriter();
+                CharStreams.copy(in, out);
+                String fileName = out.toString();
+
+                in = resultSet.getClob("message").getCharacterStream();
+                out = new StringWriter();
+                CharStreams.copy(in, out);
+                String message = out.toString();
+
+                String link;
+                if (resultSet.getClob("link") != null) {
+                    in = resultSet.getClob("link").getCharacterStream();
+                    out = new StringWriter();
+                    CharStreams.copy(in, out);
+                    link = out.toString();
+                } else {
+                    link = null;
+                }
+
+                Entry entry = new EntryBuilder()
+                        .setBuildNumber(resultSet.getInt("build_number"))
+                        .setEntryId(resultSet.getInt("entry_id"))
+                        .setFileName(fileName)
+                        .setFileSha1(resultSet.getString("file_sha1"))
+                        .setIssueId(resultSet.getString("issue_id"))
+                        .setLineNumber(resultSet.getInt("line_number"))
+                        .setMessage(message)
+                        .setLink(link)
+                        .setParser(resultSet.getString("parser"))
+                        .setSeverity(resultSet.getString("severity"))
+                        .setWarningSha1(resultSet.getString("warning_sha1"))
+                        .createEntry();
+
+                result.add(entry);
+            }
+
+            return result;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Throwables.propagate(e);
+        }
+        return null;
     }
 
     public void associateWarningToEntry(String warningSha1, int entryId) {

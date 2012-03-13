@@ -9,6 +9,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.jenkins.plugins.qualitytrends.model.BuildStorageManager;
 import org.jenkins.plugins.qualitytrends.model.BuildStorageManagerFactory;
+import org.jenkins.plugins.qualitytrends.model.Entry;
 import org.jenkins.plugins.qualitytrends.model.QualityTrendsModule;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
@@ -92,6 +93,22 @@ public class BuildAction implements Action {
     public Map<String, Integer> getOrphans() {
         if (storage == null) initStorage();
         return storage.getOrphans();
+    }
+
+    @JavaScriptMethod
+    public JSONObject getEntries(int start, int limit, String orderBy, String direction) {
+        if (storage == null) initStorage();
+        JSONArray jsonArray = new JSONArray();
+        for (Entry entry : storage.getEntries(start, limit, orderBy, direction)) {
+            JSONObject json = new JSONObject()
+                    .accumulate("file_name", entry.getFileName())
+                    .accumulate("line_number", entry.getLineNumber())
+                    .accumulate("parser", entry.getParser())
+                    .accumulate("severity", entry.getSeverity());
+            jsonArray.add(json);
+        }
+        JSONObject jsonObject = new JSONObject().element("totalNumber", storage.getEntryCount()).element("data", jsonArray);
+        return jsonObject;
     }
 
     public String getIconFileName() {

@@ -26,6 +26,10 @@ l.layout(title: _("Build Quality Trends")) {
             div(id: "orphan_chart", style: "width:150px;height:150px;float:left;margin-right:10px")
             div(id: "orphan_table", style: "float:left", class: "yui3-skin-sam")
         }
+        div(id: "entries", style: "clear:both; margin-top:10px") {
+            h2(_("Entries"))
+            div(id: "entry_table", style: "float:left", class: "yui3-skin-sam")
+        }
     }
 }
 
