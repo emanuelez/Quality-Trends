@@ -1,7 +1,26 @@
-function drawPager(currentPage, totalNumber, limit, elementId) {
+var currentPage = 1;
+var lastPage = 1;
+
+function drawPager(totalNumber, limit, elementId) {
     var p = document.createElement('p');
-    p.innerHTML = 'Page ' + currentPage + ' of ' + Math.ceil(totalNumber/limit);
+    var prev = '';
+    var next = '';
+    if (currentPage > 1) {
+        prev = '<img id="qtFirst" src="/plugin/quality-trends/go-first.png"/><img id="qtPrevious" src="/plugin/quality-trends/go-previous.png"/> ';
+    }
+    if (currentPage < Math.ceil(totalNumber/limit)) {
+        next = ' <img id="qtNext" src="/plugin/quality-trends/go-next.png"/><img id="qtLast" src="/plugin/quality-trends/go-last.png"/>';
+    }
+    p.innerHTML = prev + 'Page ' + currentPage + ' of ' + Math.ceil(totalNumber/limit) + next;
     $(elementId).appendChild(p);
+    if(prev != '') {
+        $('qtFirst').observe('click', goToFirstPage);
+        $('qtPrevious').observe('click', goToPreviousPage);
+    }
+    if(next != '') {
+        $('qtLast').observe('click', goToLastPage);
+        $('qtNext').observe('click', goToNextPage);
+    }
 }
 
 YUI().use('node', function(Y) {
@@ -288,9 +307,208 @@ function draw() {
                 recordset: entries.data
             }).render("#entry_table");
         });
+
+        lastPage = Math.ceil(entries.totalNumber / 50);
+
         if (entries.totalNumber > 50) {
-            drawPager(1, entries.totalNumber, 50, 'entry_table_container');
+            drawPager(entries.totalNumber, 50, 'entry_table_container');
         }
 
+    });
+}
+
+function goToLastPage() {
+    currentPage = lastPage;
+
+    $('entry_table').innerHTML = '';
+    $('entry_table_container').select('p')[0].remove();
+
+    it.getEntries(lastPage, 50, 'severity', 'DESC', function (t) {
+        var entries = t.responseObject();
+
+        var calcFileName = function (o) {
+            var fileName = o.record.getValue("file_name");
+            if (fileName.length > 25) {
+                return '[...]' + fileName.substring(fileName.length - 20);
+            } else {
+                return fileName;
+            }
+        };
+
+        var calcLineNumber = function (o) {
+            return o.record.getValue("line_number");
+        };
+
+        var calcParser = function (o) {
+            return o.record.getValue("parser");
+        };
+
+        var calcSeverity = function (o) {
+            return o.record.getValue("severity");
+        };
+
+        YUI().use('datatable-base', function (Y) {
+            var cols = [
+                {key: "File Name", formatter: calcFileName},
+                {key: "Line Number", formatter: calcLineNumber},
+                {key: "Parser", formatter: calcParser},
+                {key: "Severity", formatter: calcSeverity}];
+
+            new Y.DataTable.Base({
+                columnset: cols,
+                recordset: entries.data
+            }).render("#entry_table");
+        });
+
+        if (entries.totalNumber > 50) {
+            drawPager(entries.totalNumber, 50, 'entry_table_container');
+        }
+    });
+}
+
+function goToNextPage() {
+    currentPage++;
+
+    $('entry_table').innerHTML = '';
+    $('entry_table_container').select('p')[0].remove();
+
+    it.getEntries(currentPage, 50, 'severity', 'DESC', function (t) {
+        var entries = t.responseObject();
+
+        var calcFileName = function (o) {
+            var fileName = o.record.getValue("file_name");
+            if (fileName.length > 25) {
+                return '[...]' + fileName.substring(fileName.length - 20);
+            } else {
+                return fileName;
+            }
+        };
+
+        var calcLineNumber = function (o) {
+            return o.record.getValue("line_number");
+        };
+
+        var calcParser = function (o) {
+            return o.record.getValue("parser");
+        };
+
+        var calcSeverity = function (o) {
+            return o.record.getValue("severity");
+        };
+
+        YUI().use('datatable-base', function (Y) {
+            var cols = [
+                {key: "File Name", formatter: calcFileName},
+                {key: "Line Number", formatter: calcLineNumber},
+                {key: "Parser", formatter: calcParser},
+                {key: "Severity", formatter: calcSeverity}];
+
+            new Y.DataTable.Base({
+                columnset: cols,
+                recordset: entries.data
+            }).render("#entry_table");
+        });
+
+        if (entries.totalNumber > 50) {
+            drawPager(entries.totalNumber, 50, 'entry_table_container');
+        }
+    });
+}
+
+function goToPreviousPage() {
+    currentPage--;
+
+    $('entry_table').innerHTML = '';
+    $('entry_table_container').select('p')[0].remove();
+
+    it.getEntries(currentPage, 50, 'severity', 'DESC', function (t) {
+        var entries = t.responseObject();
+
+        var calcFileName = function (o) {
+            var fileName = o.record.getValue("file_name");
+            if (fileName.length > 25) {
+                return '[...]' + fileName.substring(fileName.length - 20);
+            } else {
+                return fileName;
+            }
+        };
+
+        var calcLineNumber = function (o) {
+            return o.record.getValue("line_number");
+        };
+
+        var calcParser = function (o) {
+            return o.record.getValue("parser");
+        };
+
+        var calcSeverity = function (o) {
+            return o.record.getValue("severity");
+        };
+
+        YUI().use('datatable-base', function (Y) {
+            var cols = [
+                {key: "File Name", formatter: calcFileName},
+                {key: "Line Number", formatter: calcLineNumber},
+                {key: "Parser", formatter: calcParser},
+                {key: "Severity", formatter: calcSeverity}];
+
+            new Y.DataTable.Base({
+                columnset: cols,
+                recordset: entries.data
+            }).render("#entry_table");
+        });
+
+        if (entries.totalNumber > 50) {
+            drawPager(entries.totalNumber, 50, 'entry_table_container');
+        }
+    });
+}
+
+function goToFirstPage() {
+    currentPage = 1;
+
+    $('entry_table').innerHTML = '';
+    $('entry_table_container').select('p')[0].remove();
+
+    it.getEntries(currentPage, 50, 'severity', 'DESC', function (t) {
+        var entries = t.responseObject();
+
+        var calcFileName = function (o) {
+            var fileName = o.record.getValue("file_name");
+            if (fileName.length > 25) {
+                return '[...]' + fileName.substring(fileName.length - 20);
+            } else {
+                return fileName;
+            }
+        };
+
+        var calcLineNumber = function (o) {
+            return o.record.getValue("line_number");
+        };
+
+        var calcParser = function (o) {
+            return o.record.getValue("parser");
+        };
+
+        var calcSeverity = function (o) {
+            return o.record.getValue("severity");
+        };
+
+        YUI().use('datatable-base', function (Y) {
+            var cols = [
+                {key: "File Name", formatter: calcFileName},
+                {key: "Line Number", formatter: calcLineNumber},
+                {key: "Parser", formatter: calcParser},
+                {key: "Severity", formatter: calcSeverity}];
+
+            new Y.DataTable.Base({
+                columnset: cols,
+                recordset: entries.data
+            }).render("#entry_table");
+        });
+
+        if (entries.totalNumber > 50) {
+            drawPager(entries.totalNumber, 50, 'entry_table_container');
+        }
     });
 }
