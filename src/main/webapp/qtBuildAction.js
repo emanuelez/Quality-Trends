@@ -1,25 +1,30 @@
 var currentPage = 1;
 var lastPage = 1;
 
-function drawPager(totalNumber, limit, elementId) {
+function drawPager(totalNumber, limit, className) {
     var p = document.createElement('p');
     var prev = '';
     var next = '';
+
     if (currentPage > 1) {
-        prev = '<img id="qtFirst" src="/plugin/quality-trends/go-first.png"/><img id="qtPrevious" src="/plugin/quality-trends/go-previous.png"/> ';
+        prev = '<img class="qtFirst" src="/plugin/quality-trends/go-first.png"/><img class="qtPrevious" src="/plugin/quality-trends/go-previous.png"/> ';
     }
+
     if (currentPage < Math.ceil(totalNumber/limit)) {
-        next = ' <img id="qtNext" src="/plugin/quality-trends/go-next.png"/><img id="qtLast" src="/plugin/quality-trends/go-last.png"/>';
+        next = ' <img class="qtNext" src="/plugin/quality-trends/go-next.png"/><img class="qtLast" src="/plugin/quality-trends/go-last.png"/>';
     }
+
     p.innerHTML = prev + 'Page ' + currentPage + ' of ' + Math.ceil(totalNumber/limit) + next;
-    $(elementId).appendChild(p);
+
+    $$('.' + className).each(function(element) {element.appendChild(p.cloneNode(true))});
+
     if(prev != '') {
-        $('qtFirst').observe('click', goToFirstPage);
-        $('qtPrevious').observe('click', goToPreviousPage);
+        $$('.qtFirst').each(function(element) {element.observe('click', goToFirstPage)});
+        $$('.qtPrevious').each(function(element) {element.observe('click', goToPreviousPage)});
     }
     if(next != '') {
-        $('qtLast').observe('click', goToLastPage);
-        $('qtNext').observe('click', goToNextPage);
+        $$('.qtLast').each(function(element) {element.observe('click', goToLastPage)});
+        $$('.qtNext').each(function(element) {element.observe('click', goToNextPage)});
     }
 }
 
@@ -311,7 +316,7 @@ function draw() {
         lastPage = Math.ceil(entries.totalNumber / 50);
 
         if (entries.totalNumber > 50) {
-            drawPager(entries.totalNumber, 50, 'entry_table_container');
+            drawPager(entries.totalNumber, 50, 'entry_pager');
         }
 
     });
@@ -321,7 +326,7 @@ function goToLastPage() {
     currentPage = lastPage;
 
     $('entry_table').innerHTML = '';
-    $('entry_table_container').select('p')[0].remove();
+    $$('.entry_pager>p').each(function(element) {element.remove()});
 
     it.getEntries(lastPage, 50, 'severity', 'DESC', function (t) {
         var entries = t.responseObject();
@@ -361,7 +366,7 @@ function goToLastPage() {
         });
 
         if (entries.totalNumber > 50) {
-            drawPager(entries.totalNumber, 50, 'entry_table_container');
+            drawPager(entries.totalNumber, 50, 'entry_pager');
         }
     });
 }
@@ -370,7 +375,7 @@ function goToNextPage() {
     currentPage++;
 
     $('entry_table').innerHTML = '';
-    $('entry_table_container').select('p')[0].remove();
+    $$('.entry_pager>p').each(function(element) {element.remove()});
 
     it.getEntries(currentPage, 50, 'severity', 'DESC', function (t) {
         var entries = t.responseObject();
@@ -410,7 +415,7 @@ function goToNextPage() {
         });
 
         if (entries.totalNumber > 50) {
-            drawPager(entries.totalNumber, 50, 'entry_table_container');
+            drawPager(entries.totalNumber, 50, 'entry_pager');
         }
     });
 }
@@ -419,7 +424,7 @@ function goToPreviousPage() {
     currentPage--;
 
     $('entry_table').innerHTML = '';
-    $('entry_table_container').select('p')[0].remove();
+    $$('.entry_pager>p').each(function(element) {element.remove()});
 
     it.getEntries(currentPage, 50, 'severity', 'DESC', function (t) {
         var entries = t.responseObject();
@@ -459,7 +464,7 @@ function goToPreviousPage() {
         });
 
         if (entries.totalNumber > 50) {
-            drawPager(entries.totalNumber, 50, 'entry_table_container');
+            drawPager(entries.totalNumber, 50, 'entry_pager');
         }
     });
 }
@@ -468,7 +473,7 @@ function goToFirstPage() {
     currentPage = 1;
 
     $('entry_table').innerHTML = '';
-    $('entry_table_container').select('p')[0].remove();
+    $$('.entry_pager>p').each(function(element) {element.remove()});
 
     it.getEntries(currentPage, 50, 'severity', 'DESC', function (t) {
         var entries = t.responseObject();
@@ -508,7 +513,7 @@ function goToFirstPage() {
         });
 
         if (entries.totalNumber > 50) {
-            drawPager(entries.totalNumber, 50, 'entry_table_container');
+            drawPager(entries.totalNumber, 50, 'entry_pager');
         }
     });
 }

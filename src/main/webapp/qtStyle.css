@@ -1,0 +1,22 @@
+.qtchart {
+    width:150px;
+    height:150px;
+    margin-right:10px
+}
+
+.qtsection {
+    margin-top: 10px;
+    clear: both;
+}
+
+.qtsection > div {
+    float: left;
+}
+
+div#entries > div {
+    float: none;
+}
+
+.entrypager {
+    height: 20px;
+}
