@@ -325,10 +325,7 @@ function draw() {
 function goToPage(page) {
     currentPage = page;
 
-    $('entry_table').innerHTML = '';
-    $$('.entry_pager>p').each(function(element) {element.remove()});
-
-    it.getEntries(lastPage, 50, 'severity', 'DESC', function (t) {
+    it.getEntries(currentPage, 50, 'severity', 'DESC', function (t) {
         var entries = t.responseObject();
 
         var calcFileName = function (o) {
@@ -351,6 +348,9 @@ function goToPage(page) {
         var calcSeverity = function (o) {
             return o.record.getValue("severity");
         };
+
+        $$('#entry_table>*').each(function(element) {element.remove()});
+        $$('.entry_pager>p').each(function(element) {element.remove()});
 
         YUI().use('datatable-base', function (Y) {
             var cols = [
