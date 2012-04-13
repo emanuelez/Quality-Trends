@@ -1,7 +1,7 @@
 var currentPage = 1;
 var lastPage = 1;
 
-function drawPager(totalNumber, limit, className) {
+function drawPagers(totalNumber, limit, className) {
     var p = document.createElement('p');
     var prev = '';
     var next = '';
@@ -316,14 +316,14 @@ function draw() {
         lastPage = Math.ceil(entries.totalNumber / 50);
 
         if (entries.totalNumber > 50) {
-            drawPager(entries.totalNumber, 50, 'entry_pager');
+            drawPagers(entries.totalNumber, 50, 'entry_pager');
         }
 
     });
 }
 
-function goToLastPage() {
-    currentPage = lastPage;
+function goToPage(page) {
+    currentPage = page;
 
     $('entry_table').innerHTML = '';
     $$('.entry_pager>p').each(function(element) {element.remove()});
@@ -366,154 +366,23 @@ function goToLastPage() {
         });
 
         if (entries.totalNumber > 50) {
-            drawPager(entries.totalNumber, 50, 'entry_pager');
+            drawPagers(entries.totalNumber, 50, 'entry_pager');
         }
     });
+}
+
+function goToLastPage() {
+    goToPage(lastPage);
 }
 
 function goToNextPage() {
-    currentPage++;
-
-    $('entry_table').innerHTML = '';
-    $$('.entry_pager>p').each(function(element) {element.remove()});
-
-    it.getEntries(currentPage, 50, 'severity', 'DESC', function (t) {
-        var entries = t.responseObject();
-
-        var calcFileName = function (o) {
-            var fileName = o.record.getValue("file_name");
-            if (fileName.length > 25) {
-                return '[...]' + fileName.substring(fileName.length - 20);
-            } else {
-                return fileName;
-            }
-        };
-
-        var calcLineNumber = function (o) {
-            return o.record.getValue("line_number");
-        };
-
-        var calcParser = function (o) {
-            return o.record.getValue("parser");
-        };
-
-        var calcSeverity = function (o) {
-            return o.record.getValue("severity");
-        };
-
-        YUI().use('datatable-base', function (Y) {
-            var cols = [
-                {key: "File Name", formatter: calcFileName},
-                {key: "Line Number", formatter: calcLineNumber},
-                {key: "Parser", formatter: calcParser},
-                {key: "Severity", formatter: calcSeverity}];
-
-            new Y.DataTable.Base({
-                columnset: cols,
-                recordset: entries.data
-            }).render("#entry_table");
-        });
-
-        if (entries.totalNumber > 50) {
-            drawPager(entries.totalNumber, 50, 'entry_pager');
-        }
-    });
+    goToPage(currentPage + 1);
 }
 
 function goToPreviousPage() {
-    currentPage--;
-
-    $('entry_table').innerHTML = '';
-    $$('.entry_pager>p').each(function(element) {element.remove()});
-
-    it.getEntries(currentPage, 50, 'severity', 'DESC', function (t) {
-        var entries = t.responseObject();
-
-        var calcFileName = function (o) {
-            var fileName = o.record.getValue("file_name");
-            if (fileName.length > 25) {
-                return '[...]' + fileName.substring(fileName.length - 20);
-            } else {
-                return fileName;
-            }
-        };
-
-        var calcLineNumber = function (o) {
-            return o.record.getValue("line_number");
-        };
-
-        var calcParser = function (o) {
-            return o.record.getValue("parser");
-        };
-
-        var calcSeverity = function (o) {
-            return o.record.getValue("severity");
-        };
-
-        YUI().use('datatable-base', function (Y) {
-            var cols = [
-                {key: "File Name", formatter: calcFileName},
-                {key: "Line Number", formatter: calcLineNumber},
-                {key: "Parser", formatter: calcParser},
-                {key: "Severity", formatter: calcSeverity}];
-
-            new Y.DataTable.Base({
-                columnset: cols,
-                recordset: entries.data
-            }).render("#entry_table");
-        });
-
-        if (entries.totalNumber > 50) {
-            drawPager(entries.totalNumber, 50, 'entry_pager');
-        }
-    });
+    goToPage(currentPage - 1);
 }
 
 function goToFirstPage() {
-    currentPage = 1;
-
-    $('entry_table').innerHTML = '';
-    $$('.entry_pager>p').each(function(element) {element.remove()});
-
-    it.getEntries(currentPage, 50, 'severity', 'DESC', function (t) {
-        var entries = t.responseObject();
-
-        var calcFileName = function (o) {
-            var fileName = o.record.getValue("file_name");
-            if (fileName.length > 25) {
-                return '[...]' + fileName.substring(fileName.length - 20);
-            } else {
-                return fileName;
-            }
-        };
-
-        var calcLineNumber = function (o) {
-            return o.record.getValue("line_number");
-        };
-
-        var calcParser = function (o) {
-            return o.record.getValue("parser");
-        };
-
-        var calcSeverity = function (o) {
-            return o.record.getValue("severity");
-        };
-
-        YUI().use('datatable-base', function (Y) {
-            var cols = [
-                {key: "File Name", formatter: calcFileName},
-                {key: "Line Number", formatter: calcLineNumber},
-                {key: "Parser", formatter: calcParser},
-                {key: "Severity", formatter: calcSeverity}];
-
-            new Y.DataTable.Base({
-                columnset: cols,
-                recordset: entries.data
-            }).render("#entry_table");
-        });
-
-        if (entries.totalNumber > 50) {
-            drawPager(entries.totalNumber, 50, 'entry_pager');
-        }
-    });
+    goToPage(1);
 }
